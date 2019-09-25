@@ -1,0 +1,67 @@
+#prefix used to show metrics in AppDynamics
+metricPrefix: "Server|Component:<TIER_ID>|Custom Metrics|Azure|"
+#metricPrefix: "Custom Metrics|Azure|"
+
+service: ""
+
+accounts:
+  - displayName: "AzureAccount VM"
+    resourceGroups: [".*"]  # Please put the concerned resourceGroups only
+    service: "Virtual machine"
+#    intervals of different services are different(min 5 mins for Vm and 60 mins for storage acccount), and should be configured more
+#    than minimum else the api query throws error
+    interval: 5  #in minute
+    regions: [".*"]
+    credentials:
+         client: ""
+         tenant: ""
+         secret: ""
+         subscriptionId: ""
+#         Provide cert file path if used, supports json as well
+#         certAuthFilePath: <Your-Cert-Path>
+
+
+#  - displayName: "AzureAccount Storage"
+#    resourceGroups: [".*"]
+#    service: "Storage account"
+#    interval: 60  #in minute
+#    regions: [".*"]
+#    credentials:
+#         client: ""
+#         tenant: ""
+#         secret: ""
+#         subscriptionId: ""
+#
+#  - displayName: "AzureAccount Container"
+#    resourceGroups: [".*"]
+#    service: "Container instances"
+#    interval: 5  #in minute
+#    regions: [".*"]
+#    credentials:
+#         client: ""
+#         tenant: ""
+#         secret: ""
+#         subscriptionId: ""
+
+#Provide Encryption key for Encrypted password.
+credentialsDecryptionConfig:
+  enableDecryption: "false"
+  encryptionKey:
+
+proxyConfig:
+  host:
+  port:
+  username:
+  password:
+
+metricsTimeRange:
+  startTimeInMinsBeforeNow: 50
+  endTimeInMinsBeforeNow: 0
+
+concurrencyConfig:
+  noOfResourceGroupThreads: 3
+  noOfMetricsCollectorThreads: 3
+  threadTimeout: 30  #Thread timeout in seconds
+
+#TODO: decide an equation for threads being used
+numberOfThreads: 3
