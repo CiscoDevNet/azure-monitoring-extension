@@ -57,4 +57,58 @@ Set delta = true for metric to report per-min data
         <metric attr="Network In Total" alias="Network In Total" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
         <metric attr="Network Out Total" alias="Network Out Total" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
     </stat>
+
+    <stat service="Container instances" resourceType="Microsoft.ContainerInstance">
+        <metric attr="CpuUsage" alias="CPU Usage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="MemoryUsage" alias="Memory Usage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="NetworkBytesReceivedPerSecond" alias="Network Bytes Received Per Second" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="NetworkBytesTransmittedPerSecond" alias="Network Bytes Transmitted Per Second" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+    </stat>
+
+    <stat service="SQL server" resourceType="Microsoft.Sql">
+        <metric attr="cpu_percent" alias="CPU percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="physical_data_read_percent" alias="Data IO percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="log_write_percent" alias="Log IO percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="dtu_consumption_percent" alias="DTU percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="storage" alias="Data space used" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="connection_successful" alias="Successful Connections" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="connection_failed" alias="Failed Connections" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="blocked_by_firewall" alias="Blocked by Firewall" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="deadlock" alias="Deadlocks" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="storage_percent" alias="Data space used percent" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="xtp_storage_percent" alias="In-Memory OLTP storage percent" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="workers_percent" alias="Workers percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="sessions_percent" alias="Sessions percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="dtu_limit" alias="DTU Limit" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="dtu_used" alias="DTU used" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="cpu_limit" alias="CPU limit" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="cpu_used" alias="CPU used" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="dwu_limit" alias="DWU limit" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="dwu_consumption_percent" alias="DWU percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="dwu_used" alias="DWU used" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="dw_cpu_percent" alias="DW node level CPU percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="dw_physical_data_read_percent" alias="DW node level Data IO percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="cache_hit_percent" alias="Cache hit percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="cache_used_percent" alias="Cache used percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="local_tempdb_usage_percent" alias="Local tempdb percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="app_cpu_billed" alias="App CPU billed" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="app_cpu_percent" alias="App CPU percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="app_memory_percent" alias="App memory used percentage" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="allocated_data_storage" alias="Data space allocated" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+    </stat>
+    <stat service="Storage account" resourceType="Microsoft.Storage">
+        <metric attr="UsedCapacity" alias="Used capacity" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Transactions" alias="Transactions" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE">
+            <dimension key="ResponseType" value=""/>
+            <dimension key="GeoType" value=""/>
+            <dimension key="ApiName" value=""/>
+            <dimension key="Authentication" value=""/>
+        </metric>
+        <!--<metric attr="Ingress" alias="Ingress" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>-->
+        <!--<metric attr="Egress" alias="Egress" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>-->
+        <!--<metric attr="SuccessServerLatency" alias="Success Server Latency" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>-->
+        <!--<metric attr="SuccessE2ELatency" alias="Success E2E Latency" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>-->
+        <!--<metric attr="Availability" alias="Availability" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>-->
+    </stat>
+
 </stats>

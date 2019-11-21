@@ -12,6 +12,7 @@ accounts:
 #    than minimum else the api query throws error
     interval: 5  #in minute
     regions: [".*"]
+    serviceInstances: [".*"]
     credentials:
          client: ""
          tenant: ""
@@ -26,6 +27,7 @@ accounts:
 #    service: "Storage account"
 #    interval: 60  #in minute
 #    regions: [".*"]
+#    serviceInstances: [".*"]
 #    credentials:
 #         client: ""
 #         tenant: ""
@@ -37,6 +39,21 @@ accounts:
 #    service: "Container instances"
 #    interval: 5  #in minute
 #    regions: [".*"]
+#    serviceInstances: [".*"]
+#    credentials:
+#         client: "d05bd27a-f878-44df-a4c3-daa38e0c9765"
+#         tenant: "6f735114-f4c5-4463-b385-9e81ea573bdf"
+#         secret: "t36?pKbrOC=.uvY?uogH37lJnUID?ARw"
+#         subscriptionId: "ea44d84e-2797-486b-b3ff-6a8ffa6f83ec"
+##         Provide cert file path if used, supports json as well
+##         certAuthFilePath: <Your-Cert-Path>
+
+#  - displayName: "AzureAccount Sql server"
+#    resourceGroups: [".*"]
+#    service: "SQL server"
+#    interval: 5  #in minute
+#    regions: [".*"]
+#    serviceInstances: [".*"]
 #    credentials:
 #         client: ""
 #         tenant: ""

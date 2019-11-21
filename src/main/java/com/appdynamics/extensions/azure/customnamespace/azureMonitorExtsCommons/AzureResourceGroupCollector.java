@@ -52,7 +52,7 @@ public class AzureResourceGroupCollector<T> extends TaskBuilder {
         }catch (Exception e){
             LOGGER.info("Exeception caught in AzureResourceGroupCollector", e);
         }
-        return null;
+        return Lists.newArrayList();
     }
 
     private List<FutureTask<List<Metric>>> buildFutureTasks(MonitorExecutorService executorService, List<T> resourceGroupList) {
@@ -72,7 +72,7 @@ public class AzureResourceGroupCollector<T> extends TaskBuilder {
     }
 
     private List<Metric> collectFutureMetrics(List<FutureTask<List<Metric>>> tasks) {
-        List<Metric> metrics = null;
+        List<Metric> metrics = Lists.newArrayList();
         for (FutureTask<List<Metric>> task : tasks) {
             try {
             metrics = task.get(this.config.getConcurrencyConfig().getThreadTimeout(), TimeUnit.SECONDS);
