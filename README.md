@@ -1,0 +1,1 @@
+# azure-custom-namespace-monitoring-extension
