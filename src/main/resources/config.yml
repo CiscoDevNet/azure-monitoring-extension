@@ -2,15 +2,12 @@
 metricPrefix: "Server|Component:<TIER_ID>|Custom Metrics|Azure|"
 #metricPrefix: "Custom Metrics|Azure|"
 
-service: ""
-
 accounts:
   - displayName: "AzureAccount VM"
     resourceGroups: [".*"]  # Please put the concerned resourceGroups only
     service: "Virtual machine"
 #    intervals of different services are different(min 5 mins for Vm and 60 mins for storage acccount), and should be configured more
 #    than minimum else the api query throws error
-    interval: 5  #in minute
     regions: [".*"]
     serviceInstances: [".*"]
     credentials:
@@ -18,15 +15,12 @@ accounts:
          tenant: ""
          secret: ""
          subscriptionId: ""
-#         Provide cert file path if used, supports json as well
-#         certAuthFilePath: <Your-Cert-Path>
 
 
 #  - displayName: "AzureAccount Storage"
-#    resourceGroups: [".*"]
+#    resourceGroups: ["test-ext.*"]
 #    service: "Storage account"
-#    interval: 60  #in minute
-#    regions: [".*"]
+#    regions: ["East US"]
 #    serviceInstances: [".*"]
 #    credentials:
 #         client: ""
@@ -37,22 +31,18 @@ accounts:
 #  - displayName: "AzureAccount Container"
 #    resourceGroups: [".*"]
 #    service: "Container instances"
-#    interval: 5  #in minute
 #    regions: [".*"]
 #    serviceInstances: [".*"]
 #    credentials:
-#         client: "d05bd27a-f878-44df-a4c3-daa38e0c9765"
-#         tenant: "6f735114-f4c5-4463-b385-9e81ea573bdf"
-#         secret: "t36?pKbrOC=.uvY?uogH37lJnUID?ARw"
-#         subscriptionId: "ea44d84e-2797-486b-b3ff-6a8ffa6f83ec"
-##         Provide cert file path if used, supports json as well
-##         certAuthFilePath: <Your-Cert-Path>
+#         client: ""
+#         tenant: ""
+#         secret: ""
+#         subscriptionId: ""
 
 #  - displayName: "AzureAccount Sql server"
 #    resourceGroups: [".*"]
 #    service: "SQL server"
-#    interval: 5  #in minute
-#    regions: [".*"]
+#    regions: ["australia.*"]
 #    serviceInstances: [".*"]
 #    credentials:
 #         client: ""
@@ -71,6 +61,9 @@ proxyConfig:
   username:
   password:
 
+
+filterStats: false
+
 metricsTimeRange:
   startTimeInMinsBeforeNow: 50
   endTimeInMinsBeforeNow: 0
@@ -78,7 +71,7 @@ metricsTimeRange:
 concurrencyConfig:
   noOfResourceGroupThreads: 3
   noOfMetricsCollectorThreads: 3
-  threadTimeout: 30  #Thread timeout in seconds
+  threadTimeout: 300  #Thread timeout in seconds
 
 #TODO: decide an equation for threads being used
-numberOfThreads: 3
+numberOfThreads: 30

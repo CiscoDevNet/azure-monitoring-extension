@@ -43,29 +43,29 @@ public class AzureResourceGroupCollector<T> extends TaskBuilder {
 
     private List<Metric> collectMetrics() {
         try {
-            List<T> resourceGroupList = NameSpaceGroupFactory.getNamespaceGroup(azure, (String) account.get(SERVICE), resourceGroup);
-            if (resourceGroupList.size() > 0) {
+            List<T> servicesList = NameSpaceGroupFactory.getNamespaceGroup(azure, (String) account.get(SERVICE), resourceGroup);
+            if (servicesList.size() > 0) {
                 MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfMetricsCollectorThreads()));
-                List<FutureTask<List<Metric>>> tasks = buildFutureTasks(executorService, resourceGroupList);
+                List<FutureTask<List<Metric>>> tasks = buildFutureTasks(executorService, servicesList);
                 return collectFutureMetrics(tasks);
             }
         }catch (Exception e){
-            LOGGER.info("Exeception caught in AzureResourceGroupCollector", e);
+            LOGGER.error("Exeception caught in AzureResourceGroupCollector for resourceGroup {}", resourceGroup, e);
         }
         return Lists.newArrayList();
     }
 
-    private List<FutureTask<List<Metric>>> buildFutureTasks(MonitorExecutorService executorService, List<T> resourceGroupList) {
+    private List<FutureTask<List<Metric>>> buildFutureTasks(MonitorExecutorService executorService, List<T> servicesList) {
         List<FutureTask<List<Metric>>> tasks = Lists.newArrayList();
-        for (T resourceGroup : resourceGroupList) {
+        for (T service : servicesList) {
             try {
-                LOGGER.debug("starting AzureMetricCollector task for {}", resourceGroup.toString());
-                AzureMetricsCollector<T> accountTask = new AzureMetricsCollector(azure, account, monitorContextConfiguration, config, metricWriteHelper, metricPrefix, resourceGroup);
+                LOGGER.debug("starting AzureMetricCollector task for {}", resourceGroup);
+                AzureMetricsCollector<T> accountTask = new AzureMetricsCollector(azure, account, monitorContextConfiguration, config, metricWriteHelper, metricPrefix, service);
                 FutureTask<List<Metric>> accountExecutorTask = new FutureTask(accountTask);
                 executorService.submit("AzureResourceGroupCollector", accountExecutorTask);
                 tasks.add(accountExecutorTask);
             }catch (Exception e){
-                LOGGER.info("Exception while collecting metrics for resourceGroup {}, service {}, accountname {}", resourceGroup.toString(), account.get(SERVICE), account.get(DISPLAY_NAME));
+                LOGGER.error("Exception while collecting metrics for resourceGroup {}, service {}, accountname {}", resourceGroup.toString(), account.get(SERVICE), account.get(DISPLAY_NAME), e);
             }
         }
         return tasks;
@@ -84,6 +84,7 @@ public class AzureResourceGroupCollector<T> extends TaskBuilder {
                 LOGGER.error("Task timed out. ", var8);
             }
         }
+        LOGGER.debug("Completed AzureMetricCollectror Task for {}", resourceGroup);
         return metrics;
     }
 }

@@ -96,7 +96,7 @@ public class Constants {
         BATCH_ACCOUNT = "BatchAccount";
         CDN_PROFILE = "CdnProfile";
         CONTAINER_SERVICE = "ContainerService";
-        COSMOS_DB_ACCOUNT = "CosmosDBAccount";
+        COSMOS_DB_ACCOUNT = "Cosmos DB account";
         DDOS_PROTECTION_PLAN = "DdosProtectionPlan";
         DEPLOYMENT = "Deployment";
         DISK = "Disk";

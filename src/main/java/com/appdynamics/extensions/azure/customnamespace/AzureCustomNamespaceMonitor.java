@@ -34,6 +34,11 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
     private static final String DEFAULT_METRIC_PREFIX = String.format("%s%s%s%s", "Custom Metrics", METRIC_PATH_SEPARATOR, "Azure CustomNameSpace", METRIC_PATH_SEPARATOR);
     private MonitorContextConfiguration monitorContextConfiguration;
 
+
+    protected org.slf4j.Logger getLogger() {
+        return LOGGER;
+    }
+
     public AzureCustomNamespaceMonitor() {
         super(Configuration.class);
         LOGGER.info(String.format("Using Azure Custom Namespace Monitor Version [%s]",
@@ -56,7 +61,7 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
             List<Map<String, ?>> accounts = getAccounts();
             String metricPrefix = config.getMetricPrefix();
             for (Map<String, ?> account : accounts){
-                AssertUtils.assertNotNull(monitorContextConfiguration.getMetricsXml(), "Metrics xml not available");
+//                AssertUtils.assertNotNull(monitorContextConfiguration.getMetricsXml(), "Metrics xml not available");
                 AssertUtils.assertNotNull(account, "the account arguments are empty");
                 preprocessAccount(account, service);
                 AzureCustomNamespaceMonitorTask task = new AzureCustomNamespaceMonitorTask(monitorContextConfiguration, config, tasksExecutionServiceProvider.getMetricWriteHelper(), account, metricPrefix);
@@ -85,11 +90,6 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
         List<Map<String, ?>> accounts = (List<Map<String, ?>>) config.get("accounts");
         AssertUtils.assertNotNull(accounts, "The 'instances' section in config.yml is not initialised");
         return accounts;
-    }
-
-
-    protected org.slf4j.Logger getLogger() {
-        return LOGGER;
     }
 
     @Override

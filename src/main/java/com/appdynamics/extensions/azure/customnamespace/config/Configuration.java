@@ -26,6 +26,8 @@ public class Configuration {
 
     private ProxyConfig proxyConfig;
 
+    private boolean filterStats;
+
     private ConcurrencyConfig concurrencyConfig;
 
     private MetricsTimeRange metricsTimeRange;
@@ -107,4 +109,11 @@ public class Configuration {
         this.metricsTimeRange = metricsTimeRange;
     }
 
+    public boolean isFilterStats() {
+        return filterStats;
+    }
+
+    public void setFilterStats(boolean filterStats) {
+        this.filterStats = filterStats;
+    }
 }

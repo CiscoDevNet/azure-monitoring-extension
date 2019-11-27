@@ -6,7 +6,6 @@ import com.appdynamics.extensions.azure.customnamespace.azureAuthStore.Authentic
 import com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons.AzureResourceGroupCollector;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.DISPLAY_NAME;
-import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.REGIONS;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.RESOURCE_GROUPS;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.executorservice.MonitorExecutorService;
@@ -43,6 +42,7 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
     private MetricWriteHelper metricWriteHelper;
     private Map<String, ?> account;
     private Azure azure;
+    private int heartBeat = 0;
 
     public AzureCustomNamespaceMonitorTask(MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, Map<String, ?> account, String metricPrefix) {
         this.monitorContextConfiguration = monitorContextConfiguration;
@@ -54,11 +54,13 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
 
     public void run() {
         try {
+            LOGGER.debug("Starting processing for the account {}", account.get("displayName"));
             azure = AuthenticationFactory.getAzure((Map<String, ?>) account.get("credentials"));
             if (azure == null)
                 throw new Exception("Failed: built Azure object is null");
             else
                 collectStatistics();
+            LOGGER.debug("Completed processing for the account {}", account.get("displayName"));
         } catch (IOException IOe) {
             LOGGER.error("Error in Authentication of the Azure client", IOe);
         } catch (Exception e) {
@@ -68,27 +70,39 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
     }
 
     private void collectStatistics() {
-        MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfResourceGroupThreads()));
-        List<FutureTask<List<Metric>>> resourceGroupFutureTask = buildFutureTasks(executorService);
-        List<Metric> metrics = collectFutureMetrics(resourceGroupFutureTask);
-        metricWriteHelper.transformAndPrintMetrics(metrics);
+        List<Metric> metrics = Lists.newArrayList();
+        try {
+            MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfResourceGroupThreads()));
+            List<FutureTask<List<Metric>>> resourceGroupFutureTask = buildFutureTasks(executorService);
+            metrics = collectFutureMetrics(resourceGroupFutureTask);
+            heartBeat = 1;
+        } catch (Exception e) {
+            LOGGER.error("Error while collecting stats for Account {}", account.get("displayName"), e);
+        } finally {
+            Metric heartbeat = new Metric("Heartbeat", String.valueOf(heartBeat), metricPrefix);
+            metrics.add(heartbeat);
+            metricWriteHelper.transformAndPrintMetrics(metrics);
+        }
     }
 
     private List<FutureTask<List<Metric>>> buildFutureTasks(MonitorExecutorService executorService) {
         List<FutureTask<List<Metric>>> futureTasks = Lists.newArrayList();
         try {
-            List<String> regions = (List<String>) account.get(REGIONS);
             List<String> confResourceGroups = (List<String>) account.get(RESOURCE_GROUPS);
-            List<ResourceGroup> filteredResourceGroups = regionFilteredResourceGroups(azure.resourceGroups().list(), confResourceGroups, regions);
-            LOGGER.debug("Filtered resourceGroups with region are {}", filteredResourceGroups);
+            List<ResourceGroup> filteredResourceGroups = filteredResourceGroups(azure.resourceGroups().list(), confResourceGroups);
+            LOGGER.debug("Filtered resourceGroups are {}", filteredResourceGroups);
             for (ResourceGroup resourceGroup : filteredResourceGroups) {
-                AzureResourceGroupCollector accountTask = new AzureResourceGroupCollector(azure, account, monitorContextConfiguration, config, metricWriteHelper, resourceGroup.name(), metricPrefix);
-                FutureTask<List<Metric>> accountExecutorTask = new FutureTask(accountTask);
-                executorService.submit("AzureCustomNamespaceMonitorTask", accountExecutorTask);
-                futureTasks.add(accountExecutorTask);
+                try {
+                    AzureResourceGroupCollector accountTask = new AzureResourceGroupCollector(azure, account, monitorContextConfiguration, config, metricWriteHelper, resourceGroup.name(), metricPrefix);
+                    FutureTask<List<Metric>> accountExecutorTask = new FutureTask(accountTask);
+                    executorService.submit("AzureCustomNamespaceMonitorTask", accountExecutorTask);
+                    futureTasks.add(accountExecutorTask);
+                }catch (Exception e){
+                    LOGGER.error("Error while collecting metrics for resourceGroup {}", resourceGroup.name(), e);
+                }
             }
         } catch (Exception e) {
-            LOGGER.debug("Exception while querying for a resourceGroup of account {}", account.get(DISPLAY_NAME));
+            LOGGER.error("Exception while querying for a resourceGroup of account {}", account.get(DISPLAY_NAME), e);
         } finally {
             return futureTasks;
         }
@@ -110,10 +124,10 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
         return metrics;
     }
 
-    private List<ResourceGroup> regionFilteredResourceGroups(List<ResourceGroup> resourceGroups, List<String> confResourceGroups, List<String> regions) {
+    private List<ResourceGroup> filteredResourceGroups(List<ResourceGroup> resourceGroups, List<String> confResourceGroups) {
         List<ResourceGroup> filteredResourceGroup = Lists.newArrayList();
         for (ResourceGroup resourceGroup : resourceGroups) {
-            if (checkStringPatternMatch(resourceGroup.name(), confResourceGroups) && checkStringPatternMatch(resourceGroup.regionName(), regions))
+            if (checkStringPatternMatch(resourceGroup.name(), confResourceGroups))
                 filteredResourceGroup.add(resourceGroup);
             else
                 LOGGER.debug("No match for resourceGroup {}, Excluding it", resourceGroup.name());
@@ -130,7 +144,6 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
         }
         return false;
     }
-
 
     private boolean checkRegexMatch(String text, String pattern) {
         Pattern regexPattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);

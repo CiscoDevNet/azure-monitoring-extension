@@ -23,6 +23,7 @@
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
         <target.dir>${project.build.directory}/AzureCustomNamespaceMonitor</target.dir>
         <target.name>AzureCustomNamespaceMonitor</target.name>
+        <lib.dir>${basedir}/lib</lib.dir>
     </properties>
 
     <dependencies>
@@ -30,11 +31,12 @@
             <groupId>com.appdynamics</groupId>
             <artifactId>machine-agent</artifactId>
             <version>3.7.11</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.appdynamics</groupId>
-            <artifactId>appd-exts-commons</artifactId>
-            <version>2.2.0</version>
+        <groupId>com.appdynamics</groupId>
+        <artifactId>appd-exts-commons</artifactId>
+        <version>2.2.1</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
@@ -53,6 +55,21 @@
             <artifactId>junit</artifactId>
             <version>4.8.2</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.appdynamics.extensions</groupId>
+            <artifactId>haproxy-monitoring-extension</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.appdynamics.extensions</groupId>
+            <artifactId>haproxy-monitoring-extension</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.appdynamics</groupId>
+            <artifactId>machineagent-repackaged</artifactId>
+            <version>4.0.5.1</version>
         </dependency>
     </dependencies>
 
@@ -180,6 +197,20 @@
             </plugin>
         </plugins>
     </build>
-
+    <repositories>
+        <repository>
+            <id>github-maven-repo</id>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <url>https://github.com/Appdynamics/maven-repo/raw/master/releases</url>
+        </repository>
+    </repositories>
+    <scm>
+        <connection>scm:git:https://github.com/Appdynamics/azure-custom-namespace-monitoring-extension.git</connection>
+    </scm>
 
 </project>

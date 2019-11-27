@@ -26,8 +26,6 @@ public class Account {
 
     private Set<String> serviceInstances;
     
-    private String interval;
-
     private Set<String> regions;
 
     private Map<String, List<String>> dimensions;
@@ -64,14 +62,6 @@ public class Account {
 
     public void setRegions(Set<String> regions) {
         this.regions = regions;
-    }
-
-    public String getInterval() {
-        return interval;
-    }
-
-    public void setInterval(String interval) {
-        this.interval = interval;
     }
 
     public Map<String, List<String>> getDimensions() {
