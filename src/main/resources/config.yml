@@ -3,11 +3,10 @@ metricPrefix: "Server|Component:<TIER_ID>|Custom Metrics|Azure|"
 #metricPrefix: "Custom Metrics|Azure|"
 
 accounts:
+#https://docs.microsoft.com/en-us/azure/virtual-machines/linux/metrics-vm-usage-rest
   - displayName: "AzureAccount VM"
     resourceGroups: [".*"]  # Please put the concerned resourceGroups only
     service: "Virtual machine"
-#    intervals of different services are different(min 5 mins for Vm and 60 mins for storage acccount), and should be configured more
-#    than minimum else the api query throws error
     regions: [".*"]
     serviceInstances: [".*"]
     credentials:
@@ -16,6 +15,16 @@ accounts:
          secret: ""
          subscriptionId: ""
 
+    targets:
+       - displayName: "VM Target"
+         resource: "/resourceGroups/my-rg/providers/Microsoft.Compute/virtualMachines/myvm/providers/microsoft.insights/metrics"
+         metrics:
+            - attr: "Network Out Total"
+            - attr: "Disk Write Bytes"
+            - attr: "Disk Read Operations/Sec"
+            - attr: "Disk Write Operations/Sec"
+         apiVersion: "2019-07-01"
+         timeSpan: "10" #in minutes https://docs.microsoft.com/en-us/windows/win32/taskschd/repetitionpattern-interval
 
 #  - displayName: "AzureAccount Storage"
 #    resourceGroups: ["test-ext.*"]
@@ -71,7 +80,7 @@ metricsTimeRange:
 concurrencyConfig:
   noOfResourceGroupThreads: 3
   noOfMetricsCollectorThreads: 3
-  threadTimeout: 300  #Thread timeout in seconds
+  threadTimeout: 30  #Thread timeout in seconds
 
 #TODO: decide an equation for threads being used
 numberOfThreads: 30

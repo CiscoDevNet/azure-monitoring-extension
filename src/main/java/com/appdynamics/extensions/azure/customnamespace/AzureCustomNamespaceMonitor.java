@@ -4,6 +4,7 @@ import com.appdynamics.extensions.TasksExecutionServiceProvider;
 import com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons.AzureMonitor;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
 import com.appdynamics.extensions.azure.customnamespace.config.Stat;
+import com.appdynamics.extensions.azure.customnamespace.utils.Constants;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.CONFIG_FILE;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.METRIC_FILE;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.METRIC_PATH_SEPARATOR;
@@ -50,7 +51,7 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
     }
 
     public String getMonitorName() {
-        return monitorName;
+        return Constants.MonitorName;
     }
 
     @Override

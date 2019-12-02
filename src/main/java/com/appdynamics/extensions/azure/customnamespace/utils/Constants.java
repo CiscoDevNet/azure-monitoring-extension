@@ -15,11 +15,14 @@ package com.appdynamics.extensions.azure.customnamespace.utils;/*
  */
 
 public class Constants {
+    public static final String MonitorName;
     public static final String METRIC_PATH_SEPARATOR;
-    public static final String monitorName;
     public static final String CONFIG_FILE;
     public static final String METRIC_FILE;
     public static final String DISPLAY_NAME;
+    public static final String AUTHORITY;
+    public static final String AZURE_MANAGEMENT;
+    public static final String ACTIVE_DIRECTORY_AUTHORITY_URL;
     public static final int MONITORED_RESOURCE_LIMIT;
     public static final String SERVICE;
     public static final String INTERVAL;
@@ -74,10 +77,13 @@ public class Constants {
     public static final String WEB_APP;
     static {
         METRIC_PATH_SEPARATOR = "|";
-        monitorName = "CustomNameSpaceMonitor";
+        MonitorName = "CustomNameSpaceMonitor";
         CONFIG_FILE = "config-file";
         METRIC_FILE = "metric-file";
         DISPLAY_NAME = "displayName";
+        AUTHORITY  = "https://login.windows.net/";
+        AZURE_MANAGEMENT = "https://management.azure.com/";
+        ACTIVE_DIRECTORY_AUTHORITY_URL = "https://login.microsoftonline.com/";
         MONITORED_RESOURCE_LIMIT = 100;
         SERVICE = "service";
         INTERVAL = "interval";

@@ -32,6 +32,8 @@ public class Account {
 
     private Credentials credentials;
 
+    private List<Target> targets;
+
     public String getDisplayName() {
         return displayName;
     }
@@ -86,5 +88,13 @@ public class Account {
 
     public void setServiceInstances(Set<String> serviceInstances) {
         this.serviceInstances = serviceInstances;
+    }
+
+    public List<Target> getTargets() {
+        return targets;
+    }
+
+    public void setTargets(List<Target> targets) {
+        this.targets = targets;
     }
 }
