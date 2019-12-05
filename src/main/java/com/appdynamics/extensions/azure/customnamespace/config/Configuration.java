@@ -20,8 +20,6 @@ public class Configuration {
 
     private String metricPrefix;
 
-    private String service;
-
     private CredentialsDecryptionConfig credentialsDecryptionConfig;
 
     private ProxyConfig proxyConfig;
@@ -91,14 +89,6 @@ public class Configuration {
 
     public void setNumberOfThreads(int numberOfThreads) {
         this.numberOfThreads = numberOfThreads;
-    }
-
-    public String getService() {
-        return service;
-    }
-
-    public void setService(String service) {
-        this.service = service;
     }
 
     public MetricsTimeRange getMetricsTimeRange() {

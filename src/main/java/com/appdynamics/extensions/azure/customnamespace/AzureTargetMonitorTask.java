@@ -1,21 +1,31 @@
 package com.appdynamics.extensions.azure.customnamespace;
 
+import com.appdynamics.extensions.azure.customnamespace.config.MetricConfig;
+import com.appdynamics.extensions.azure.customnamespace.config.Target;
+import com.appdynamics.extensions.azure.customnamespace.utils.CommonUtilities;
 import com.appdynamics.extensions.azure.customnamespace.utils.Constants;
-import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.METRIC_PATH_SEPARATOR;
+import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.API_VERSION;
+import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.AUTHORIZATION;
+import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.BEARER;
+import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.RESOURCE_GROUPS;
+import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.SUBSCRIPTION;
+import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.microsoft.aad.adal4j.AuthenticationResult;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 
@@ -26,13 +36,14 @@ import java.util.concurrent.Callable;
  The copyright notice above does not evidence any actual or intended publication of such source code.
 */
 public class AzureTargetMonitorTask implements Callable {
-
-    private Map<String, ?> target;
+    Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureTargetMonitorTask.class);
+    private Target target;
     private AuthenticationResult authTokenResult;
     private String metricPrefix;
     private String subscriptionId;
+    private String SLASH = "/";
 
-    public AzureTargetMonitorTask(Map<String, ?> target, AuthenticationResult authTokenResult, String metricPrefix, String subscriptionId) {
+    public AzureTargetMonitorTask(Target target, AuthenticationResult authTokenResult, String metricPrefix, String subscriptionId) {
         this.target = target;
         this.authTokenResult = authTokenResult;
         this.metricPrefix = metricPrefix;
@@ -40,58 +51,119 @@ public class AzureTargetMonitorTask implements Callable {
     }
 
     @Override
-    public List<Metric> call() throws Exception {
+    public List<Metric> call() {
         List<Metric> metrics = Lists.newArrayList();
-        initTargetMetricsCollection();
+        try {
+            metrics = targetMetricCollector();
+        } catch (IOException IOe) {
+            LOGGER.error("I/O exception occured while collecting target metrics", IOe);
+        } catch (Exception e) {
+            LOGGER.error("Error while collecting target metrics");
+        }
         return metrics;
     }
 
-    private List<Metric> initTargetMetricsCollection() throws IOException {
-        CloseableHttpClient client = HttpClients.createDefault();
-        String url = Constants.AZURE_MANAGEMENT + "subscriptions/" + subscriptionId + target.get("resource") + "?api-version=" + target.get("apiVersion") + collectiveMetricsNames((List<Map<String, ?>>)target.get("metrics")) ;
-        HttpGet request = new HttpGet(url + "timespan=" + getTimespan(target.get("timeSpan").toString()));
-        request.addHeader("Authorization", "Bearer " + authTokenResult.getAccessToken());
-        HttpResponse response = client.execute(request);
-
-        String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
-        JSONObject jsonObject = new JSONObject(responseBody);
-
-        return parseJsonObject(jsonObject);
+    private List<Metric> targetMetricCollector() throws IOException {
+        List<Metric> metrics = Lists.newArrayList();
+//        https://www.baeldung.com/httpclient-connection-management#eviction
+//        https://www.baeldung.com/httpclient-custom-http-header
+        CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(new PoolingHttpClientConnectionManager()).build();
+        String resource = target.getResource();
+        String[] resourceSubstrings = resource.split(SLASH);
+        List<String> matchedResourceGroupNames = queryAndMatchConfiguredResourceGroups(resourceSubstrings, httpClient);
+        for (String resourceGroup : matchedResourceGroupNames) {
+            List<String> matchedResourceNames = queryAndMatchConfiguredResources(resourceGroup, resourceSubstrings, httpClient);
+            initTargetMetricsCollection((target.getResource()).replace("<MY-RESOURCE-GROUP>", resourceGroup), matchedResourceNames, metrics, httpClient);
+        }
+        return metrics;
     }
 
-    private String collectiveMetricsNames(List<Map<String, ?>> metricStats){
+    private List<String> queryAndMatchConfiguredResourceGroups(String[] resourceSubstrings, HttpClient httpClient) {
+        List<String> resourceGroups = Lists.newArrayList();
+        List<String> queriedResourceGroupNames = Lists.newArrayList();
+        resourceGroups.addAll(target.getResourceGroups());
+        try {
+            if (!resourceSubstrings[2].equals("<MY-RESOURCE-GROUP>"))
+                resourceGroups.add(resourceSubstrings[2]);
+            String resourceGroupUrl = Constants.AZURE_MANAGEMENT + SUBSCRIPTION + SLASH + subscriptionId + SLASH + RESOURCE_GROUPS + API_VERSION + "2019-03-01";
+            HttpGet request = new HttpGet(resourceGroupUrl);
+            request.addHeader(AUTHORIZATION, BEARER + authTokenResult.getAccessToken());
+            HttpResponse response = httpClient.execute(request);
+            String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
+            JSONArray jsonResourcesArray = new JSONObject(responseBody).getJSONArray("value");
+            for (int i = 0; i < jsonResourcesArray.length(); i++) {
+                JSONObject jsonResource = jsonResourcesArray.getJSONObject(i);
+                queriedResourceGroupNames.add(jsonResource.getString("name"));
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error while collecting the resourceGroups", e);
+        }
+        return filterConfiguredResourceNames(queriedResourceGroupNames, resourceGroups);
+    }
+
+    private List<String> queryAndMatchConfiguredResources(String resourceGroup, String[] resourceSubstrings, HttpClient httpClient) {
+
+        String subUrl = SLASH + RESOURCE_GROUPS + SLASH + resourceGroup + "/providers/" + resourceSubstrings[4] + "/" + resourceSubstrings[5] + API_VERSION + "2019-03-01";
+        String url = Constants.AZURE_MANAGEMENT + SUBSCRIPTION + SLASH + subscriptionId + subUrl;
+        List<String> resourceNames = Lists.newArrayList();
+
+        try {
+            HttpGet request = new HttpGet(url);
+            request.addHeader(AUTHORIZATION, BEARER + authTokenResult.getAccessToken());
+            HttpResponse response1 = httpClient.execute(request);
+            String responseBody = EntityUtils.toString(response1.getEntity(), "UTF-8");
+            JSONArray jsonResourcesArray = new JSONObject(responseBody).getJSONArray("value");
+            for (int i = 0; i < jsonResourcesArray.length(); i++) {
+                JSONObject jsonResource = jsonResourcesArray.getJSONObject(i);
+                resourceNames.add(jsonResource.getString("name"));
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error while collecting metrics from the resource", e);
+        }
+        return filterConfiguredResourceNames(resourceNames, target.getServiceInstances());
+    }
+
+    private void initTargetMetricsCollection(String resourceUrl, List<String> resourceNames, List<Metric> metrics, HttpClient client) throws IOException {
+        for (String resourceName : resourceNames) {
+            //TODO: put a check that if the resourceNames are configured then it should have the <MY-RESOURCE> in the resource string.
+            resourceUrl = resourceUrl.replace("<MY-RESOURCE>", resourceName);
+            String url = Constants.AZURE_MANAGEMENT + SUBSCRIPTION + SLASH + subscriptionId + resourceUrl + API_VERSION + target.getApiVersion() + collectiveMetricsNames(target.getMetrics());
+            HttpGet request = new HttpGet(url + "timespan=" + getTimespan(target.getTimeSpan()));
+            request.addHeader(AUTHORIZATION, BEARER + authTokenResult.getAccessToken());
+            HttpResponse response = client.execute(request);
+            String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
+            JSONObject jsonObject = new JSONObject(responseBody);
+            TargetJsonResponseParser jsonResponseParser = new TargetJsonResponseParser(metricPrefix, target);
+            metrics.addAll(jsonResponseParser.parseJsonObject(jsonObject, resourceName));
+        }
+    }
+
+    private String collectiveMetricsNames(List<MetricConfig> metricStats) {
         StringBuilder metricsQuery = new StringBuilder();
         metricsQuery.append("&metricnames=");
-
         StringJoiner sj = new StringJoiner(",");
 
-        for(Map<String, ?> metricStat : metricStats)
-            sj.add(modifiedAttr((String)metricStat.get("attr")));
+        for (MetricConfig metricStat : metricStats)
+            sj.add(modifiedAttr(metricStat.getAttr()));
         metricsQuery.append(sj.toString()).append("&");
 
         return metricsQuery.toString();
     }
 
-    private List<Metric> parseJsonObject(JSONObject jsonObject){
-        List<Metric> metrics = Lists.newArrayList();
-        metricPrefix = metricPrefix + target.get(Constants.DISPLAY_NAME) + METRIC_PATH_SEPARATOR;
-        JSONArray objectList = jsonObject.getJSONArray("value");
-        int length = objectList.length();
-        while (length-- > 0){
-            JSONObject currObj = objectList.getJSONObject(length);
-            String jsonName = currObj.getJSONObject("name").getString("value");
-            Double value = (Double) currObj.getJSONArray("timeseries").getJSONObject(0).getJSONArray("data").getJSONObject(Integer.parseInt((String) target.get("timeSpan")) - 1).get("total");
-            Metric metric = new Metric(jsonName, Double.toString(value), metricPrefix + jsonName);
-            metrics.add(metric);
-        }
-        return metrics;
+    private List<String> filterConfiguredResourceNames(List<String> resourceNames, List<String> targetResourceNames) {
+        List<String> matchedResourceNames = Lists.newArrayList();
+        for (String resourceName : resourceNames)
+            if (CommonUtilities.checkStringPatternMatch(resourceName, targetResourceNames))
+                matchedResourceNames.add(resourceName);
+
+        return matchedResourceNames;
     }
 
-    private String modifiedAttr(String attr){
-        return attr.replaceAll("\\s+","%20");
+    private String modifiedAttr(String attr) {
+        return attr.replaceAll("\\s+", "%20");
     }
 
-    private String getTimespan(String timeSpan){
+    private String getTimespan(String timeSpan) {
         return "PT" + timeSpan + "M";
     } // convert timeSpan to Azure timeGrain convention
 }

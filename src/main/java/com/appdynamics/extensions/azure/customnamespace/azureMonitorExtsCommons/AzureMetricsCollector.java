@@ -1,12 +1,13 @@
 package com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons;
 
 import com.appdynamics.extensions.MetricWriteHelper;
+import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
 import com.appdynamics.extensions.azure.customnamespace.config.MetricConfig;
+import com.appdynamics.extensions.azure.customnamespace.config.Service;
 import com.appdynamics.extensions.azure.customnamespace.config.Stat;
-import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.DISPLAY_NAME;
+import com.appdynamics.extensions.azure.customnamespace.utils.CommonUtilities;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.METRIC_PATH_SEPARATOR;
-import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.SERVICE;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
@@ -29,9 +30,6 @@ import org.joda.time.Period;
 import org.slf4j.Logger;
 
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /*
  Copyright 2019. AppDynamics LLC and its affiliates.
@@ -41,12 +39,14 @@ import java.util.regex.Pattern;
 */
 public class AzureMetricsCollector<T> extends TaskBuilder {
     private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger("AzureMetricsCollector.class");
-    private T resourceGroup;
-    private String service;
+    private T service;
+    private Service monitoringService;
+    private String matchedServiceName;
 
-    public AzureMetricsCollector(Azure azure, Map<String, ?> account, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, String metricPrefix, T cont) {
+    public AzureMetricsCollector(Azure azure, Account account, Service monitoringService, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, String metricPrefix, T cont) {
         super(azure, account, monitorContextConfiguration, config, metricWriteHelper, metricPrefix);
-        this.resourceGroup = cont;
+        this.service = cont;
+        this.monitoringService = monitoringService;
     }
 
     @Override
@@ -57,21 +57,21 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
     private List<Metric> collectMetrics() {
         List<Metric> metrics = Lists.newArrayList();
         try {
-            String service = (String) account.get(SERVICE);
+            String serviceName = monitoringService.getServiceName();
             Stat stats = null;
             if (monitorContextConfiguration.getConfigYml().get("filterStats").equals(true))
-                stats = ((Stat.Stats) monitorContextConfiguration.getMetricsXml()).getStats(service);
-            String resourceId = getFilteredResourceId(resourceGroup);
+                stats = ((Stat.Stats) monitorContextConfiguration.getMetricsXml()).getStats(serviceName);
+            String resourceId = getFilteredResourceId(service);
             if (resourceId != null) {
-                metricPrefix = metricPrefix + account.get(DISPLAY_NAME) + METRIC_PATH_SEPARATOR + service + METRIC_PATH_SEPARATOR;
-                LOGGER.debug("Starting metrics collection for displayname {}. service {}", account.get(DISPLAY_NAME), service);
+                metricPrefix = metricPrefix + account.getDisplayName() + METRIC_PATH_SEPARATOR + serviceName + METRIC_PATH_SEPARATOR;
+                LOGGER.debug("Starting metrics collection for displayname {}. service {}", account.getDisplayName(), matchedServiceName);
                 for (MetricDefinition metricDefinition : azure.metricDefinitions().listByResource(resourceId)) {
                     MetricConfig matchedConfig = isMetricConfigured(stats, metricDefinition.name().value());
                     metrics.addAll(queryMetricDefinintion(metricDefinition, matchedConfig));
                 }
-                LOGGER.debug("Successfully collected all the metrics for displayname {}, service {}", account.get(DISPLAY_NAME), service);
+                LOGGER.debug("Successfully collected all the metrics for displayname {}, service {}", account.getDisplayName(), matchedServiceName);
             } else {
-                LOGGER.debug("service did not match for Resource Group {}", resourceGroup.toString());
+                LOGGER.debug("service did not match for service {}", service.toString());
             }
         } catch (Exception e) {
             LOGGER.debug("Exception in AzureMetricsCollector, failed while collect metrics ", e);
@@ -90,7 +90,7 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
                 String metricValue = fetchValueAsPerAggregatoin(latestElement, matchedConfig.getAggregationType());
                 if (!metricValue.equals("null")) {
                     //TODO: put region/resourcegrp in metricss
-                    Metric metric = new Metric(matchedConfig.getAlias(), metricValue, metricPrefix + service + METRIC_PATH_SEPARATOR + matchedConfig.getAlias());
+                    Metric metric = new Metric(matchedConfig.getAlias(), metricValue, metricPrefix + matchedServiceName + METRIC_PATH_SEPARATOR + matchedConfig.getAlias());
                     metrics.add(metric);
                 }
             }
@@ -138,24 +138,24 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
         return filterQuery.toString();
     }
 
-    private String getFilteredResourceId(T resourceGroup) {
+    private String getFilteredResourceId(T service) {
         String resourceId = null;
-        List<String> serviceInstances = (List<String>) account.get("serviceInstances");
-        List<String> regions = (List<String>) account.get("regions");
-        if (resourceGroup instanceof ContainerGroup && checkServiceRegionPatternMatch(((ContainerGroup) resourceGroup).name(), serviceInstances, ((ContainerGroup) resourceGroup).region().label(), regions))
-            resourceId = ((ContainerGroup) resourceGroup).id();
-        else if (resourceGroup instanceof SqlServer && checkServiceRegionPatternMatch(((SqlServer) resourceGroup).name(), serviceInstances, ((SqlServer) resourceGroup).region().label(), regions))
-            resourceId = (((SqlServer) resourceGroup).id());
-        else if (resourceGroup instanceof StorageAccount && checkServiceRegionPatternMatch(((StorageAccount) resourceGroup).name(), serviceInstances, ((StorageAccount) resourceGroup).region().label(), regions))
-            resourceId = (((StorageAccount) resourceGroup).id());
-        else if (resourceGroup instanceof VirtualMachine && checkServiceRegionPatternMatch(((VirtualMachine) resourceGroup).name(), serviceInstances, ((VirtualMachine) resourceGroup).region().label(), regions)) {
-            resourceId = ((VirtualMachine) resourceGroup).id();
-        } else if (resourceGroup instanceof ActionGroup && checkServiceRegionPatternMatch(((ActionGroup) resourceGroup).name(), serviceInstances, ((ActionGroup) resourceGroup).region().label(), regions)) {
-            resourceId = ((ActionGroup) resourceGroup).id();
-        } else if (resourceGroup instanceof CosmosDBAccount && checkServiceRegionPatternMatch(((CosmosDBAccount) resourceGroup).name(), serviceInstances, ((CosmosDBAccount) resourceGroup).region().label(), regions)) {
-            resourceId = ((CosmosDBAccount) resourceGroup).id();
-        } else if (resourceGroup instanceof Disk && checkServiceRegionPatternMatch(((Disk) resourceGroup).name(), serviceInstances, ((Disk) resourceGroup).region().label(), regions)) {
-            resourceId = ((Disk) resourceGroup).id();
+        List<String> serviceInstances = monitoringService.getServiceInstances();
+        List<String> regions = monitoringService.getRegions();
+        if (service instanceof ContainerGroup && checkServiceRegionPatternMatch(((ContainerGroup) service).name(), serviceInstances, ((ContainerGroup) service).region().label(), regions))
+            resourceId = ((ContainerGroup) service).id();
+        else if (service instanceof SqlServer && checkServiceRegionPatternMatch(((SqlServer) service).name(), serviceInstances, ((SqlServer) service).region().label(), regions))
+            resourceId = (((SqlServer) service).id());
+        else if (service instanceof StorageAccount && checkServiceRegionPatternMatch(((StorageAccount) service).name(), serviceInstances, ((StorageAccount) service).region().label(), regions))
+            resourceId = (((StorageAccount) service).id());
+        else if (service instanceof VirtualMachine && checkServiceRegionPatternMatch(((VirtualMachine) service).name(), serviceInstances, ((VirtualMachine) service).region().label(), regions)) {
+            resourceId = ((VirtualMachine) service).id();
+        } else if (service instanceof ActionGroup && checkServiceRegionPatternMatch(((ActionGroup) service).name(), serviceInstances, ((ActionGroup) service).region().label(), regions)) {
+            resourceId = ((ActionGroup) service).id();
+        } else if (service instanceof CosmosDBAccount && checkServiceRegionPatternMatch(((CosmosDBAccount) service).name(), serviceInstances, ((CosmosDBAccount) service).region().label(), regions)) {
+            resourceId = ((CosmosDBAccount) service).id();
+        } else if (service instanceof Disk && checkServiceRegionPatternMatch(((Disk) service).name(), serviceInstances, ((Disk) service).region().label(), regions)) {
+            resourceId = ((Disk) service).id();
         }
         if(resourceId == null){
             LOGGER.info("No match for the service being monitored {}", service);
@@ -205,30 +205,11 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
 
 
     private boolean checkServiceRegionPatternMatch(String service, List<String> servicePatterns, String region, List<String> regions) {
-        if (checkStringPatternMatch(service, servicePatterns) && checkStringPatternMatch(region, regions)) {
+        if (CommonUtilities.checkStringPatternMatch(service, servicePatterns) && CommonUtilities.checkStringPatternMatch(region, regions)) {
             LOGGER.debug("Match found for name :" + service);
-            this.service = service;
+            this.matchedServiceName = service;
             return true;
         }
         return false;
     }
-
-
-    private boolean checkStringPatternMatch(String fullName, List<String> configPatterns) {
-        for (String configPattern : configPatterns) {
-            if (checkRegexMatch(fullName, configPattern)) {
-                LOGGER.debug("Match found for name :" + fullName);
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    private boolean checkRegexMatch(String text, String pattern) {
-        Pattern regexPattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
-        Matcher regexMatcher = regexPattern.matcher(text);
-        return regexMatcher.matches();
-    }
-
 }

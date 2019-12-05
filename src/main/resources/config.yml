@@ -5,19 +5,23 @@ metricPrefix: "Server|Component:<TIER_ID>|Custom Metrics|Azure|"
 accounts:
 #https://docs.microsoft.com/en-us/azure/virtual-machines/linux/metrics-vm-usage-rest
   - displayName: "AzureAccount VM"
-    resourceGroups: [".*"]  # Please put the concerned resourceGroups only
-    service: "Virtual machine"
-    regions: [".*"]
-    serviceInstances: [".*"]
     credentials:
          client: ""
          tenant: ""
          secret: ""
          subscriptionId: ""
 
+    services: # TODO: discuss if we should have a list of serviceInfo
+       - resourceGroups: ["my.*"]  # Please put the required resourceGroups only
+         serviceName: "Virtual machine"
+         regions: [".*"]
+         serviceInstances: [".*"]
+
     targets:
        - displayName: "VM Target"
-         resource: "/resourceGroups/my-rg/providers/Microsoft.Compute/virtualMachines/myvm/providers/microsoft.insights/metrics"
+         resource: "/resourceGroups/<MY-RESOURCE-GROUP>/providers/Microsoft.Compute/virtualMachines/<MY-RESOURCE>/providers/microsoft.insights/metrics"
+         resourceGroups: ["my-rg"]
+         serviceInstances: ["vm.*"]
          metrics:
             - attr: "Network Out Total"
             - attr: "Disk Write Bytes"
@@ -37,6 +41,7 @@ accounts:
 #         secret: ""
 #         subscriptionId: ""
 #
+
 #  - displayName: "AzureAccount Container"
 #    resourceGroups: [".*"]
 #    service: "Container instances"
@@ -74,13 +79,14 @@ proxyConfig:
 filterStats: false
 
 metricsTimeRange:
-  startTimeInMinsBeforeNow: 50
+  startTimeInMinsBeforeNow: 10
   endTimeInMinsBeforeNow: 0
 
 concurrencyConfig:
+  noOfServiceCollectorThreads: 3
   noOfResourceGroupThreads: 3
   noOfMetricsCollectorThreads: 3
   threadTimeout: 30  #Thread timeout in seconds
 
-#TODO: decide an equation for threads being used
-numberOfThreads: 30
+#By default we support upto 5 accounts, and 1 thread is required per account.
+numberOfThreads: 5

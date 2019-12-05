@@ -2,6 +2,7 @@ package com.appdynamics.extensions.azure.customnamespace;
 
 import com.appdynamics.extensions.TasksExecutionServiceProvider;
 import com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons.AzureMonitor;
+import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
 import com.appdynamics.extensions.azure.customnamespace.config.Stat;
 import com.appdynamics.extensions.azure.customnamespace.utils.Constants;
@@ -57,14 +58,12 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
     @Override
     protected List<Metric> getStatsForUpload(TasksExecutionServiceProvider tasksExecutionServiceProvider, Configuration config) {
         List<Metric> collectedMetrics = Arrays.asList();
-        String service = config.getService();
         try {
-            List<Map<String, ?>> accounts = getAccounts();
+            List<Account> accounts = config.getAccounts();
             String metricPrefix = config.getMetricPrefix();
-            for (Map<String, ?> account : accounts){
+            for (Account account : accounts){
 //                AssertUtils.assertNotNull(monitorContextConfiguration.getMetricsXml(), "Metrics xml not available");
                 AssertUtils.assertNotNull(account, "the account arguments are empty");
-                preprocessAccount(account, service);
                 AzureCustomNamespaceMonitorTask task = new AzureCustomNamespaceMonitorTask(monitorContextConfiguration, config, tasksExecutionServiceProvider.getMetricWriteHelper(), account, metricPrefix);
                 tasksExecutionServiceProvider.submit("accounts", task);
             }
@@ -74,11 +73,6 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
         return collectedMetrics;
     }
 
-    private void preprocessAccount(Map account, String service){
-        if(account.get("service") == null || ((String)account.get("service")).replaceAll("\\s", "").equals(""))
-            account.put("service", service);
-    }
-    //
 //    //TODO put all the one time tasks/optimizations/cache building/resourceGroup API calls here
 //    @Override
 //    protected void onConfigReload(File file) {

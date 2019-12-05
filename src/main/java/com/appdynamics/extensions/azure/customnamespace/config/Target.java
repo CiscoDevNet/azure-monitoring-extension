@@ -19,6 +19,17 @@ public class Target {
     public List<MetricConfig> metrics;
     public String apiVersion;
     public String timeSpan;
+    public List<String> serviceInstances;
+    public List<String> resourceGroups;
+
+    public List<String> getResourceGroups() {
+        return resourceGroups;
+    }
+
+    public void setResourceGroups(List<String> resourceGroups) {
+        this.resourceGroups = resourceGroups;
+    }
+
 
     public String getResource() {
         return resource;
@@ -28,6 +39,13 @@ public class Target {
         this.resource = resource;
     }
 
+    public void setServiceInstances(List<String> serviceInstances){
+        this.serviceInstances = serviceInstances;
+    }
+
+    public List<String> getServiceInstances(){
+        return this.serviceInstances;
+    }
     public List<MetricConfig> getMetrics() {
         return metrics;
     }

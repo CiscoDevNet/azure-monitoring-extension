@@ -1,5 +1,6 @@
 package com.appdynamics.extensions.azure.customnamespace.azureAuthStore;
 
+import com.appdynamics.extensions.azure.customnamespace.config.Credentials;
 import com.appdynamics.extensions.azure.customnamespace.utils.Constants;
 import com.microsoft.aad.adal4j.AuthenticationContext;
 import com.microsoft.aad.adal4j.AuthenticationResult;
@@ -12,7 +13,6 @@ import com.microsoft.azure.management.Azure;
 import javax.naming.ServiceUnavailableException;
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -34,12 +34,12 @@ public class AuthenticationFactory {
     public static String subscriptionId;
     public static String certAuthFilePath;
 
-    public static Azure getAzure(Map<String, ?> accountCreds) throws IOException {
-        client = (String) accountCreds.get("client");
-        tenant = (String) accountCreds.get("tenant");
-        secret = (String) accountCreds.get("secret");
-        subscriptionId = (String) accountCreds.get("subscriptionId");
-        certAuthFilePath = (String) accountCreds.get("certAuthFilePath");
+    public static Azure getAzure(Credentials accountCreds) throws IOException {
+        client = accountCreds.getClient();
+        tenant = accountCreds.getTenant();
+        secret = accountCreds.getSecret();
+        subscriptionId = accountCreds.getSubscriptionId();
+        certAuthFilePath = accountCreds.getCertAuthFilePath();
 
         if (secret != null || !secret.equals("")) {
             ApplicationTokenCredentials credentials = new ApplicationTokenCredentials(client, tenant, secret, AzureEnvironment.AZURE);
@@ -53,7 +53,8 @@ public class AuthenticationFactory {
 
     public static AuthenticationResult getAccessTokenFromUserCredentials() throws Exception {
         AuthenticationResult result = null;
-        ExecutorService service = Executors.newFixedThreadPool(1);;
+        //TODO: check the executor
+        ExecutorService service = Executors.newFixedThreadPool(1);
         try
         {
             ClientCredential credential = new ClientCredential(client,secret);

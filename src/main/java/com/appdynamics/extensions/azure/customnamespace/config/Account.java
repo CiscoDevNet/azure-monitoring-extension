@@ -11,7 +11,6 @@ package com.appdynamics.extensions.azure.customnamespace.config;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Prashant Mehta
@@ -20,13 +19,7 @@ public class Account {
 
     private String displayName;
 
-    private Set<String> resourceGroups;
-
-    private String service;
-
-    private Set<String> serviceInstances;
-    
-    private Set<String> regions;
+    private List<Service> services;
 
     private Map<String, List<String>> dimensions;
 
@@ -40,30 +33,6 @@ public class Account {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
-    }
-
-    public Set<String> getResourceGroups() {
-        return resourceGroups;
-    }
-
-    public void setResourceGroups(Set<String> resourceGroups) {
-        this.resourceGroups = resourceGroups;
-    }
-
-    public String getService() {
-        return service;
-    }
-
-    public void setService(String service) {
-        this.service = service;
-    }
-
-    public Set<String> getRegions() {
-        return regions;
-    }
-
-    public void setRegions(Set<String> regions) {
-        this.regions = regions;
     }
 
     public Map<String, List<String>> getDimensions() {
@@ -82,19 +51,19 @@ public class Account {
         this.credentials = credentials;
     }
 
-    public Set<String> getServiceInstances() {
-        return serviceInstances;
-    }
-
-    public void setServiceInstances(Set<String> serviceInstances) {
-        this.serviceInstances = serviceInstances;
-    }
-
     public List<Target> getTargets() {
         return targets;
     }
 
     public void setTargets(List<Target> targets) {
         this.targets = targets;
+    }
+
+    public List<Service> getServices() {
+        return services;
+    }
+
+    public void setServices(List<Service> services) {
+        this.services = services;
     }
 }

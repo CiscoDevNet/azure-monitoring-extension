@@ -2,9 +2,10 @@ package com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.azure.customnamespace.AzureNamespaceGroupFactory.NameSpaceGroupFactory;
+import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
-import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.DISPLAY_NAME;
-import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.SERVICE;
+import com.appdynamics.extensions.azure.customnamespace.config.Service;
+import com.appdynamics.extensions.azure.customnamespace.utils.CommonUtilities;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.executorservice.MonitorExecutorService;
 import com.appdynamics.extensions.executorservice.MonitorThreadPoolExecutor;
@@ -15,12 +16,8 @@ import com.microsoft.azure.management.Azure;
 import org.slf4j.Logger;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /*
  Copyright 2019. AppDynamics LLC and its affiliates.
@@ -31,10 +28,12 @@ import java.util.concurrent.TimeoutException;
 public class AzureResourceGroupCollector<T> extends TaskBuilder {
     private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger("AzureResourceGroupCollector.class");
     private String resourceGroup;
+    private Service service;
 
-    public AzureResourceGroupCollector(Azure azure, Map<String, ?> account, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, String resourceGroup, String metricPrefix) {
+    public AzureResourceGroupCollector(Azure azure, Account account, Service service, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, String resourceGroup, String metricPrefix) {
         super(azure, account, monitorContextConfiguration, config, metricWriteHelper, metricPrefix);
         this.resourceGroup = resourceGroup;
+        this.service = service;
     }
 
     public List<Metric> call() {
@@ -43,11 +42,11 @@ public class AzureResourceGroupCollector<T> extends TaskBuilder {
 
     private List<Metric> collectMetrics() {
         try {
-            List<T> servicesList = NameSpaceGroupFactory.getNamespaceGroup(azure, (String) account.get(SERVICE), resourceGroup);
+            List<T> servicesList = NameSpaceGroupFactory.getNamespaceGroup(azure, service.getServiceName(), resourceGroup);
             if (servicesList.size() > 0) {
                 MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfMetricsCollectorThreads()));
                 List<FutureTask<List<Metric>>> tasks = buildFutureTasks(executorService, servicesList);
-                return collectFutureMetrics(tasks);
+                return CommonUtilities.collectFutureMetrics(tasks, config.getConcurrencyConfig().getThreadTimeout(), "AzureResourceGroupCollector");
             }
         }catch (Exception e){
             LOGGER.error("Exeception caught in AzureResourceGroupCollector for resourceGroup {}", resourceGroup, e);
@@ -57,36 +56,20 @@ public class AzureResourceGroupCollector<T> extends TaskBuilder {
 
     private List<FutureTask<List<Metric>>> buildFutureTasks(MonitorExecutorService executorService, List<T> servicesList) {
         List<FutureTask<List<Metric>>> tasks = Lists.newArrayList();
-        for (T service : servicesList) {
+        for (T serviceQueried : servicesList) {
             try {
                 LOGGER.debug("starting AzureMetricCollector task for {}", resourceGroup);
-                AzureMetricsCollector<T> accountTask = new AzureMetricsCollector(azure, account, monitorContextConfiguration, config, metricWriteHelper, metricPrefix, service);
+                AzureMetricsCollector<T> accountTask = new AzureMetricsCollector(azure, account, service, monitorContextConfiguration, config, metricWriteHelper, metricPrefix, serviceQueried);
                 FutureTask<List<Metric>> accountExecutorTask = new FutureTask(accountTask);
                 executorService.submit("AzureResourceGroupCollector", accountExecutorTask);
                 tasks.add(accountExecutorTask);
             }catch (Exception e){
-                LOGGER.error("Exception while collecting metrics for resourceGroup {}, service {}, accountname {}", resourceGroup.toString(), account.get(SERVICE), account.get(DISPLAY_NAME), e);
+                LOGGER.error("Exception while collecting metrics for resourceGroup {}, service {}, accountName {}", resourceGroup, service, account.getDisplayName(), e);
             }
         }
         return tasks;
     }
 
-    private List<Metric> collectFutureMetrics(List<FutureTask<List<Metric>>> tasks) {
-        List<Metric> metrics = Lists.newArrayList();
-        for (FutureTask<List<Metric>> task : tasks) {
-            try {
-            metrics = task.get(this.config.getConcurrencyConfig().getThreadTimeout(), TimeUnit.SECONDS);
-            } catch (InterruptedException var6) {
-                LOGGER.error("Task interrupted. ", var6);
-            } catch (ExecutionException var7) {
-                LOGGER.error("Task execution failed. ", var7);
-            } catch (TimeoutException var8) {
-                LOGGER.error("Task timed out. ", var8);
-            }
-        }
-        LOGGER.debug("Completed AzureMetricCollectror Task for {}", resourceGroup);
-        return metrics;
-    }
 }
 
 

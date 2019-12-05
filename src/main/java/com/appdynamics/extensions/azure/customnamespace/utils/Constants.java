@@ -21,8 +21,12 @@ public class Constants {
     public static final String METRIC_FILE;
     public static final String DISPLAY_NAME;
     public static final String AUTHORITY;
+    public static final String SUBSCRIPTION;
     public static final String AZURE_MANAGEMENT;
     public static final String ACTIVE_DIRECTORY_AUTHORITY_URL;
+    public static final String AUTHORIZATION;
+    public static final String BEARER;
+    public static final String API_VERSION;
     public static final int MONITORED_RESOURCE_LIMIT;
     public static final String SERVICE;
     public static final String INTERVAL;
@@ -47,6 +51,7 @@ public class Constants {
     public static final String EXPRESS_ROUTE_CIRCUIT;
     public static final String EXPRESS_ROUTE_CROSS_CONNECTION;
     public static final String GALLERY;
+    public static final String RESOURCE;
     public static final String GENERIC_RESOURCE;
     public static final String IDENTITY;
     public static final String KUBERNETES_CLUSTER;
@@ -82,8 +87,12 @@ public class Constants {
         METRIC_FILE = "metric-file";
         DISPLAY_NAME = "displayName";
         AUTHORITY  = "https://login.windows.net/";
+        SUBSCRIPTION = "subscriptions";
         AZURE_MANAGEMENT = "https://management.azure.com/";
         ACTIVE_DIRECTORY_AUTHORITY_URL = "https://login.microsoftonline.com/";
+        AUTHORIZATION = "Authorization";
+        BEARER = "Bearer "; //Bearer string with space.
+        API_VERSION = "?api-version=";
         MONITORED_RESOURCE_LIMIT = 100;
         SERVICE = "service";
         INTERVAL = "interval";
@@ -92,6 +101,7 @@ public class Constants {
         SQL_SERVER = "SQL server";
         STORAGE_ACCOUNT = "Storage account";
         VIRTUAL_MACHINE = "Virtual machine";
+        RESOURCE = "resource";
         RESOURCE_GROUPS = "resourceGroups";
         ACTION_GROUP = "ActionGroup";
         APPLICATION_GATEWAY = "ApplicationGateway";

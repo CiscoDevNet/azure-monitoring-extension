@@ -1,13 +1,13 @@
 package com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons;
 
 import com.appdynamics.extensions.MetricWriteHelper;
+import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
 import com.microsoft.azure.management.Azure;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /*
@@ -18,13 +18,13 @@ import java.util.concurrent.Callable;
 */
 public abstract class TaskBuilder implements Callable<List<Metric>> {
     protected Azure azure;
-    protected Map<String, ?> account;
+    protected Account account;
     protected MonitorContextConfiguration monitorContextConfiguration;
     protected Configuration config;
     protected MetricWriteHelper metricWriteHelper;
     protected String metricPrefix;
 
-    public TaskBuilder(Azure azure, Map<String, ?> account, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, String metricPrefix) {
+    public TaskBuilder(Azure azure, Account account, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, String metricPrefix) {
         this.azure = azure;
         this.account = account;
         this.monitorContextConfiguration = monitorContextConfiguration;
