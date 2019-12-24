@@ -8,6 +8,8 @@ package com.appdynamics.extensions.azure.customnamespace.config;
 */
 
 
+import com.google.common.collect.Lists;
+
 import java.util.List;
 
 /**
@@ -47,6 +49,8 @@ public class Target {
         return this.serviceInstances;
     }
     public List<MetricConfig> getMetrics() {
+        if(metrics == null)
+            return Lists.newArrayList();
         return metrics;
     }
 

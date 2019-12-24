@@ -11,7 +11,7 @@ accounts:
          secret: ""
          subscriptionId: ""
 
-    services: # TODO: discuss if we should have a list of serviceInfo
+    services:
        - resourceGroups: ["my.*"]  # Please put the required resourceGroups only
          serviceName: "Virtual machine"
          regions: [".*"]

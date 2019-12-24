@@ -7,6 +7,7 @@ import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
 import com.appdynamics.extensions.azure.customnamespace.config.Service;
 import com.appdynamics.extensions.azure.customnamespace.config.Target;
+import com.appdynamics.extensions.azure.customnamespace.utils.AzureApiVersionStore;
 import com.appdynamics.extensions.azure.customnamespace.utils.CommonUtilities;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.executorservice.MonitorExecutorService;
@@ -64,7 +65,6 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
         } catch (Exception e) {
             LOGGER.error("Exception while creating azure client", e);
         }
-        onTaskComplete();
     }
 
     private void collectStatistics() {
@@ -145,5 +145,10 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
     }
 
     public void onTaskComplete() {
+        try {
+            AzureApiVersionStore.writeVersionMapToFile();
+        } catch (Exception e) {
+            LOGGER.error("Failed to write the versionsMap into the resource-version.json");
+        }
     }
 }

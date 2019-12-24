@@ -5,6 +5,7 @@ import com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons.
 import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
 import com.appdynamics.extensions.azure.customnamespace.config.Stat;
+import com.appdynamics.extensions.azure.customnamespace.utils.AzureApiVersionStore;
 import com.appdynamics.extensions.azure.customnamespace.utils.Constants;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.CONFIG_FILE;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.METRIC_FILE;
@@ -92,6 +93,7 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
         monitorContextConfiguration = getContextConfiguration();
         LOGGER.info("initializing metric.xml file");
         monitorContextConfiguration.setMetricXml(args.get("metric-file"), Stat.Stats.class);
+        AzureApiVersionStore.readVersionMapFromFile();
     }
 
     public static void main(String[] args) throws TaskExecutionException {

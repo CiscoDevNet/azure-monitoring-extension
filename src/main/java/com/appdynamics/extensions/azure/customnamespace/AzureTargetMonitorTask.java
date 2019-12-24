@@ -2,6 +2,7 @@ package com.appdynamics.extensions.azure.customnamespace;
 
 import com.appdynamics.extensions.azure.customnamespace.config.MetricConfig;
 import com.appdynamics.extensions.azure.customnamespace.config.Target;
+import com.appdynamics.extensions.azure.customnamespace.utils.AzureApiVersionStore;
 import com.appdynamics.extensions.azure.customnamespace.utils.CommonUtilities;
 import com.appdynamics.extensions.azure.customnamespace.utils.Constants;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.API_VERSION;
@@ -42,6 +43,8 @@ public class AzureTargetMonitorTask implements Callable {
     private String metricPrefix;
     private String subscriptionId;
     private String SLASH = "/";
+    private String RESOURCE_API_VERSION = "2019-01-01"; //Default api version
+    private String TARGET_API_VERSION = "2019-01-01";
 
     public AzureTargetMonitorTask(Target target, AuthenticationResult authTokenResult, String metricPrefix, String subscriptionId) {
         this.target = target;
@@ -102,16 +105,18 @@ public class AzureTargetMonitorTask implements Callable {
     }
 
     private List<String> queryAndMatchConfiguredResources(String resourceGroup, String[] resourceSubstrings, HttpClient httpClient) {
+        String subUrl = SLASH + RESOURCE_GROUPS + SLASH + resourceGroup + "/providers/" + resourceSubstrings[4] + "/" + resourceSubstrings[5] + API_VERSION;
 
-        String subUrl = SLASH + RESOURCE_GROUPS + SLASH + resourceGroup + "/providers/" + resourceSubstrings[4] + "/" + resourceSubstrings[5] + API_VERSION + "2019-03-01";
         String url = Constants.AZURE_MANAGEMENT + SUBSCRIPTION + SLASH + subscriptionId + subUrl;
+        RESOURCE_API_VERSION = AzureApiVersionStore.getAptApiVersion(httpClient, url,  RESOURCE_API_VERSION, resourceSubstrings[4], authTokenResult);
+        url = url + RESOURCE_API_VERSION;
         List<String> resourceNames = Lists.newArrayList();
-
+        String responseBody = null;
         try {
             HttpGet request = new HttpGet(url);
             request.addHeader(AUTHORIZATION, BEARER + authTokenResult.getAccessToken());
             HttpResponse response1 = httpClient.execute(request);
-            String responseBody = EntityUtils.toString(response1.getEntity(), "UTF-8");
+            responseBody = EntityUtils.toString(response1.getEntity(), "UTF-8");
             JSONArray jsonResourcesArray = new JSONObject(responseBody).getJSONArray("value");
             for (int i = 0; i < jsonResourcesArray.length(); i++) {
                 JSONObject jsonResource = jsonResourcesArray.getJSONObject(i);
@@ -119,26 +124,38 @@ public class AzureTargetMonitorTask implements Callable {
             }
         } catch (Exception e) {
             LOGGER.error("Error while collecting metrics from the resource", e);
+
         }
         return filterConfiguredResourceNames(resourceNames, target.getServiceInstances());
     }
 
     private void initTargetMetricsCollection(String resourceUrl, List<String> resourceNames, List<Metric> metrics, HttpClient client) throws IOException {
         for (String resourceName : resourceNames) {
-            //TODO: put a check that if the resourceNames are configured then it should have the <MY-RESOURCE> in the resource string.
-            resourceUrl = resourceUrl.replace("<MY-RESOURCE>", resourceName);
-            String url = Constants.AZURE_MANAGEMENT + SUBSCRIPTION + SLASH + subscriptionId + resourceUrl + API_VERSION + target.getApiVersion() + collectiveMetricsNames(target.getMetrics());
-            HttpGet request = new HttpGet(url + "timespan=" + getTimespan(target.getTimeSpan()));
-            request.addHeader(AUTHORIZATION, BEARER + authTokenResult.getAccessToken());
-            HttpResponse response = client.execute(request);
-            String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
-            JSONObject jsonObject = new JSONObject(responseBody);
-            TargetJsonResponseParser jsonResponseParser = new TargetJsonResponseParser(metricPrefix, target);
-            metrics.addAll(jsonResponseParser.parseJsonObject(jsonObject, resourceName));
+            String responseBody = null;
+            try {
+                //TODO: put a check that if the resourceNames are configured then it should have the <MY-RESOURCE> in the resource string.
+                resourceUrl = resourceUrl.replace("<MY-RESOURCE>", resourceName);
+                String url = Constants.AZURE_MANAGEMENT + SUBSCRIPTION + SLASH + subscriptionId + resourceUrl + API_VERSION;
+                String subUrl = collectiveMetricsNames(target.getMetrics());
+                TARGET_API_VERSION = AzureApiVersionStore.getAptApiVersion(client, url, TARGET_API_VERSION, subUrl, resourceName, authTokenResult);
+                url = url + TARGET_API_VERSION + subUrl;
+                HttpGet request = new HttpGet(url + "&timespan=" + getTimespan(target.getTimeSpan()));
+                request.addHeader(AUTHORIZATION, BEARER + authTokenResult.getAccessToken());
+                HttpResponse response = client.execute(request);
+                responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
+                JSONObject jsonObject = new JSONObject(responseBody);
+                TargetJsonResponseParser jsonResponseParser = new TargetJsonResponseParser(metricPrefix, target);
+                metrics.addAll(jsonResponseParser.parseJsonObject(jsonObject, resourceName));
+            }catch (Exception e){
+                LOGGER.error("Exception while target metric collection ", e.getMessage());
+            }
         }
     }
 
     private String collectiveMetricsNames(List<MetricConfig> metricStats) {
+        //If condition handles the case when no metrics are configured and will fetch all the available metrics
+        if (metricStats.isEmpty())
+            return "";
         StringBuilder metricsQuery = new StringBuilder();
         metricsQuery.append("&metricnames=");
         StringJoiner sj = new StringJoiner(",");

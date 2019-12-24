@@ -16,6 +16,7 @@ package com.appdynamics.extensions.azure.customnamespace.utils;/*
 
 public class Constants {
     public static final String MonitorName;
+    public static final String RESOURCE_VERSION_PATH;
     public static final String METRIC_PATH_SEPARATOR;
     public static final String CONFIG_FILE;
     public static final String METRIC_FILE;
@@ -79,10 +80,12 @@ public class Constants {
     public static final String VIRTUAL_MACHINE_SCALE_SET;
     public static final String VIRTUAL_MACHINE;
     public static final String VIRTUAL_NETWORK_GATEWAY;
-    public static final String WEB_APP;
+    public static final String APP_SERVICE;
+    public static final String APP_SERVICE_PLAN;
     static {
         METRIC_PATH_SEPARATOR = "|";
         MonitorName = "CustomNameSpaceMonitor";
+        RESOURCE_VERSION_PATH = "resource-version.json";
         CONFIG_FILE = "config-file";
         METRIC_FILE = "metric-file";
         DISPLAY_NAME = "displayName";
@@ -104,7 +107,7 @@ public class Constants {
         RESOURCE = "resource";
         RESOURCE_GROUPS = "resourceGroups";
         ACTION_GROUP = "ActionGroup";
-        APPLICATION_GATEWAY = "ApplicationGateway";
+        APPLICATION_GATEWAY = "Application Gateway";
         APPLICATION_SECURITY_GROUP = "ApplicationSecurityGroup";
         AUTOSCALE_SETTING = "AutoscaleSetting";
         AVAILABILITY_SET = "AvailabilitySet";
@@ -112,7 +115,7 @@ public class Constants {
         BATCH_ACCOUNT = "BatchAccount";
         CDN_PROFILE = "CdnProfile";
         CONTAINER_SERVICE = "ContainerService";
-        COSMOS_DB_ACCOUNT = "Cosmos DB account";
+        COSMOS_DB_ACCOUNT = "Azure Cosmos DB account";
         DDOS_PROTECTION_PLAN = "DdosProtectionPlan";
         DEPLOYMENT = "Deployment";
         DISK = "Disk";
@@ -145,7 +148,9 @@ public class Constants {
         VIRTUAL_MACHINE_CUSTOM_IMAGE = "VirtualMachineCustomImage";
         VIRTUAL_MACHINE_SCALE_SET = "VirtualMachineScaleSet";
         VIRTUAL_NETWORK_GATEWAY = "VirtualNetworkGateway";
-        WEB_APP = "WebApp";
+        APP_SERVICE = "App Service";
+        APP_SERVICE_PLAN = "App Service plan";
+
 
     }
 }

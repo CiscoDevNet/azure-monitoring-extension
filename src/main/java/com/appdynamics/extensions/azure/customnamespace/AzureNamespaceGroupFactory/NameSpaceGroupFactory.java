@@ -107,8 +107,12 @@ public class NameSpaceGroupFactory {
             return (List<T>) azure.virtualMachineScaleSets().listByResourceGroup(resourceGroup);
         else if(namespace.equals(VIRTUAL_NETWORK_GATEWAY))
             return (List<T>) azure.virtualNetworkGateways().listByResourceGroup(resourceGroup);
-        else if(namespace.equals(WEB_APP))
+        else if(namespace.equals(APP_SERVICE))
             return (List<T>) azure.webApps().listByResourceGroup(resourceGroup);
+        else if(namespace.equals(APPLICATION_GATEWAY))
+            return (List<T>) azure.applicationGateways().listByResourceGroup(resourceGroup);
+        else if(namespace.equals(APP_SERVICE_PLAN))
+            return (List<T>) azure.appServices().appServicePlans().listByResourceGroup(resourceGroup);
         //Default
         return null;
     }
