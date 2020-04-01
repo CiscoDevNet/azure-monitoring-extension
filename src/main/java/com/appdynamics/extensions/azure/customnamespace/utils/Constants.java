@@ -16,7 +16,8 @@ package com.appdynamics.extensions.azure.customnamespace.utils;/*
 
 public class Constants {
     public static final String METRIC_PATH_SEPARATOR;
-    public static final String monitorName;
+    public static final String MONITORNAME;
+    public static final String RESOURCE_VERSION_PATH;
     public static final String CONFIG_FILE;
     public static final String METRIC_FILE;
     public static final String DISPLAY_NAME;
@@ -71,10 +72,19 @@ public class Constants {
     public static final String VIRTUAL_MACHINE_SCALE_SET;
     public static final String VIRTUAL_MACHINE;
     public static final String VIRTUAL_NETWORK_GATEWAY;
-    public static final String WEB_APP;
+    public static final String APP_SERVICE;
+    public static final String APP_SERVICE_PLAN;
+    public static final String AUTHORIZATION;
+    public static final String BEARER;
+    public static final String AZURE_MANAGEMENT;
+    public static final String SUBSCRIPTION;
+    public static final String API_VERSION;
+    public static final String AUTHORITY;
+
     static {
         METRIC_PATH_SEPARATOR = "|";
-        monitorName = "CustomNameSpaceMonitor";
+        MONITORNAME = "AzureCustomNamespaceMonitor";
+        RESOURCE_VERSION_PATH = "resource-version.json";
         CONFIG_FILE = "config-file";
         METRIC_FILE = "metric-file";
         DISPLAY_NAME = "displayName";
@@ -129,7 +139,13 @@ public class Constants {
         VIRTUAL_MACHINE_CUSTOM_IMAGE = "VirtualMachineCustomImage";
         VIRTUAL_MACHINE_SCALE_SET = "VirtualMachineScaleSet";
         VIRTUAL_NETWORK_GATEWAY = "VirtualNetworkGateway";
-        WEB_APP = "WebApp";
-
+        APP_SERVICE = "App Service";
+        APP_SERVICE_PLAN = "App Service plan";
+        AUTHORIZATION = "Authorization";
+        BEARER = "Bearer "; //Bearer string with space. = "Bearer";
+        AZURE_MANAGEMENT = "https://management.azure.com/";
+        SUBSCRIPTION = "subscriptions";
+        API_VERSION = "?api-version=";
+        AUTHORITY  = "https://login.windows.net/";
     }
 }

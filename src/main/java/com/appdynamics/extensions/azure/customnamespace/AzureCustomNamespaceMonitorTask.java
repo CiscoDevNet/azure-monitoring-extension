@@ -3,31 +3,29 @@ package com.appdynamics.extensions.azure.customnamespace;
 import com.appdynamics.extensions.AMonitorTaskRunnable;
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.azure.customnamespace.azureAuthStore.AuthenticationFactory;
-import com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons.AzureResourceGroupCollector;
+import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
-import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.DISPLAY_NAME;
-import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.REGIONS;
-import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.RESOURCE_GROUPS;
+import com.appdynamics.extensions.azure.customnamespace.config.Service;
+import com.appdynamics.extensions.azure.customnamespace.config.Target;
+import com.appdynamics.extensions.azure.customnamespace.utils.AzureApiVersionStore;
+import com.appdynamics.extensions.azure.customnamespace.utils.CommonUtilities;
+import static com.appdynamics.extensions.azure.customnamespace.utils.CommonUtilities.checkStringPatternMatch;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.executorservice.MonitorExecutorService;
 import com.appdynamics.extensions.executorservice.MonitorThreadPoolExecutor;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
+import com.microsoft.aad.adal4j.AuthenticationResult;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.resources.ResourceGroup;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /*
  Copyright 2019. AppDynamics LLC and its affiliates.
@@ -41,10 +39,12 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
     private MonitorContextConfiguration monitorContextConfiguration;
     private Configuration config;
     private MetricWriteHelper metricWriteHelper;
-    private Map<String, ?> account;
+    private Account account;
     private Azure azure;
+    private BigInteger heartBeat = BigInteger.valueOf(0);
+    private AuthenticationResult authTokenResult;
 
-    public AzureCustomNamespaceMonitorTask(MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, Map<String, ?> account, String metricPrefix) {
+    public AzureCustomNamespaceMonitorTask(MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, Account account, String metricPrefix) {
         this.monitorContextConfiguration = monitorContextConfiguration;
         this.metricWriteHelper = metricWriteHelper;
         this.account = account;
@@ -54,11 +54,14 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
 
     public void run() {
         try {
-            azure = AuthenticationFactory.getAzure((Map<String, ?>) account.get("credentials"));
+            LOGGER.debug("Starting processing for the account {}", account.getDisplayName());
+            azure = AuthenticationFactory.getAzure(account.getCredentials());
+            authTokenResult = AuthenticationFactory.getAccessTokenFromUserCredentials();
             if (azure == null)
                 throw new Exception("Failed: built Azure object is null");
             else
                 collectStatistics();
+            LOGGER.debug("Completed processing for the account {}", account.getDisplayName());
         } catch (IOException IOe) {
             LOGGER.error("Error in Authentication of the Azure client", IOe);
         } catch (Exception e) {
@@ -68,46 +71,69 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
     }
 
     private void collectStatistics() {
-        MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfResourceGroupThreads()));
-        List<FutureTask<List<Metric>>> resourceGroupFutureTask = buildFutureTasks(executorService);
-        List<Metric> metrics = collectFutureMetrics(resourceGroupFutureTask);
-        metricWriteHelper.transformAndPrintMetrics(metrics);
+        List<Metric> metrics = Lists.newArrayList();
+        try {
+            MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfServiceCollectorThreads()));
+            List<FutureTask<List<Metric>>> resourceGroupFutureTask = buildFutureTasks(executorService);
+            metrics = CommonUtilities.collectFutureMetrics(resourceGroupFutureTask, config.getConcurrencyConfig().getThreadTimeout(), "AzureCustomNamespaceMonitorTask");
+
+            //Targets Support with HttpClient
+            List<Target> resourceTargets = account.getTargets();
+            if (resourceTargets != null)
+                metrics.addAll(initTargetMetricsCollection(resourceTargets));
+            heartBeat = BigInteger.valueOf(1);
+        } catch (Exception e) {
+            LOGGER.error("Error while collecting stats for Account {}", account.getDisplayName(), e);
+        } finally {
+            Metric heartbeat = new Metric("Heartbeat", String.valueOf(heartBeat), metricPrefix + "Heartbeat");
+            metrics.add(heartbeat);
+            metricWriteHelper.transformAndPrintMetrics(metrics);
+        }
     }
 
     private List<FutureTask<List<Metric>>> buildFutureTasks(MonitorExecutorService executorService) {
         List<FutureTask<List<Metric>>> futureTasks = Lists.newArrayList();
         try {
-            List<String> regions = (List<String>) account.get(REGIONS);
-            List<String> confResourceGroups = (List<String>) account.get(RESOURCE_GROUPS);
-            List<ResourceGroup> filteredResourceGroups = regionFilteredResourceGroups(azure.resourceGroups().list(), confResourceGroups, regions);
-            LOGGER.debug("Filtered resourceGroups with region are {}", filteredResourceGroups);
-            for (ResourceGroup resourceGroup : filteredResourceGroups) {
-                AzureResourceGroupCollector accountTask = new AzureResourceGroupCollector(azure, account, monitorContextConfiguration, config, metricWriteHelper, resourceGroup.name(), metricPrefix);
-                FutureTask<List<Metric>> accountExecutorTask = new FutureTask(accountTask);
-                executorService.submit("AzureCustomNamespaceMonitorTask", accountExecutorTask);
-                futureTasks.add(accountExecutorTask);
+            List<Service> services = account.getServices();
+            for (Service service : services) {
+                try {
+                    LOGGER.debug("Started processing the service {}", service.getServiceName());
+                    AzureServiceCollector serviceCollectorTask = new AzureServiceCollector(azure, account, monitorContextConfiguration, config, metricWriteHelper, service, metricPrefix);
+                    FutureTask<List<Metric>> accountExecutorTask = new FutureTask(serviceCollectorTask);
+                    executorService.submit("AzureCustomNamespaceMonitorTask", accountExecutorTask);
+                    futureTasks.add(accountExecutorTask);
+                } catch (Exception e) {
+                    LOGGER.error("Error while collecting metrics for resourceGroup {}", service.getServiceName(), e);
+                }
             }
         } catch (Exception e) {
-            LOGGER.debug("Exception while querying for a resourceGroup of account {}", account.get(DISPLAY_NAME));
+            LOGGER.error("Exception while querying for a resourceGroup of account {}", account.getDisplayName(), e);
         } finally {
             return futureTasks;
         }
     }
 
-    private List<Metric> collectFutureMetrics(List<FutureTask<List<Metric>>> tasks) {
-        List<Metric> metrics = Lists.newArrayList();
-        for (FutureTask<List<Metric>> task : tasks) {
-            try {
-                metrics.addAll(task.get(config.getConcurrencyConfig().getThreadTimeout(), TimeUnit.SECONDS));
-            } catch (InterruptedException var6) {
-                LOGGER.error("Task interrupted. ", var6);
-            } catch (ExecutionException var7) {
-                LOGGER.error("Task execution failed. ", var7);
-            } catch (TimeoutException var8) {
-                LOGGER.error("Task timed out. ", var8);
+
+    private List<FutureTask<List<Metric>>> buildFutureTargetTasks(MonitorExecutorService executorService, List<Target> servers) {
+        List<FutureTask<List<Metric>>> futureTasks = Lists.newArrayList();
+        String targetName = null;
+        try {
+            for (Target server : servers) {
+                try {
+                    targetName = server.getDisplayName();
+                    AzureTargetMonitorTask targetTask = new AzureTargetMonitorTask(server, config.getConnection(), authTokenResult, metricPrefix, account.getCredentials().getSubscriptionId());
+                    FutureTask<List<Metric>> targetExecutorTask = new FutureTask(targetTask);
+                    executorService.submit("AzureTargetMonitorTask", targetExecutorTask);
+                    futureTasks.add(targetExecutorTask);
+                } catch (Exception e) {
+                    LOGGER.error("Error while collecting metrics for Server {}", targetName, e);
+                }
             }
+        } catch (Exception e) {
+            LOGGER.error("Exception while querying for a server {} for account {}", targetName, e);
+        } finally {
+            return futureTasks;
         }
-        return metrics;
     }
 
     private List<ResourceGroup> regionFilteredResourceGroups(List<ResourceGroup> resourceGroups, List<String> confResourceGroups, List<String> regions) {
@@ -117,27 +143,30 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
                 filteredResourceGroup.add(resourceGroup);
             else
                 LOGGER.debug("No match for resourceGroup {}, Excluding it", resourceGroup.name());
+
         }
         return filteredResourceGroup;
+
     }
 
-    private boolean checkStringPatternMatch(String fullName, List<String> configPatterns) {
-        for (String configPattern : configPatterns) {
-            if (checkRegexMatch(fullName, configPattern)) {
-                LOGGER.debug("Match found for name :" + fullName);
-                return true;
-            }
+    private List<Metric> initTargetMetricsCollection(List<Target> targets) {
+        List<Metric> metrics = Lists.newArrayList();
+        try {
+            MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(targets.size()));
+            List<FutureTask<List<Metric>>> targetFutureTask = buildFutureTargetTasks(executorService, account.getTargets());
+            metrics = CommonUtilities.collectFutureMetrics(targetFutureTask, config.getConcurrencyConfig().getThreadTimeout(), "AzureCustomNamespaceMonitorTask");
+        } catch (Exception e) {
+            LOGGER.error("Exception occurred while collecting target metrics", e);
         }
-        return false;
+        return metrics;
     }
 
-
-    private boolean checkRegexMatch(String text, String pattern) {
-        Pattern regexPattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
-        Matcher regexMatcher = regexPattern.matcher(text);
-        return regexMatcher.matches();
-    }
 
     public void onTaskComplete() {
+        try {
+            AzureApiVersionStore.writeVersionMapToFile();
+        } catch (Exception e) {
+            LOGGER.error("Failed to write the versionsMap into the resource-version.json");
+        }
     }
 }

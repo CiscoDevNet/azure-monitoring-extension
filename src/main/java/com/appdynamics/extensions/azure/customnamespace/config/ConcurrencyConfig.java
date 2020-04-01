@@ -18,11 +18,8 @@ package com.appdynamics.extensions.azure.customnamespace.config;
 public class ConcurrencyConfig {
 
     private int noOfResourceGroupThreads;
-    private int noOfMetricsCollectorThreads;
+    private int noOfServiceCollectorThreads;
     private int threadTimeout;
-
-    public ConcurrencyConfig() {
-    }
 
     public int getThreadTimeout() {
         return threadTimeout;
@@ -40,11 +37,11 @@ public class ConcurrencyConfig {
         this.noOfResourceGroupThreads = noOfResourceGroupThreads;
     }
 
-    public int getNoOfMetricsCollectorThreads() {
-        return noOfMetricsCollectorThreads;
+    public int getNoOfServiceCollectorThreads() {
+        return noOfServiceCollectorThreads;
     }
 
-    public void setNoOfMetricsCollectorThreads(int noOfMetricsCollectorThreads) {
-        this.noOfMetricsCollectorThreads = noOfMetricsCollectorThreads;
+    public void setNoOfServiceCollectorThreads(int noOfServiceCollectorThreads) {
+        this.noOfServiceCollectorThreads = noOfServiceCollectorThreads;
     }
 }

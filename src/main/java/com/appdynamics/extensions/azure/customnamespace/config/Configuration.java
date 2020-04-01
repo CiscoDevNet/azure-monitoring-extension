@@ -34,6 +34,10 @@ public class Configuration {
 
     private TaskSchedule taskSchedule;
 
+    private Connection connection;
+
+    private boolean filterStats;
+
     public List<Account> getAccounts() {
         return accounts;
     }
@@ -107,4 +111,19 @@ public class Configuration {
         this.metricsTimeRange = metricsTimeRange;
     }
 
+    public boolean isFilterStats() {
+        return filterStats;
+    }
+
+    public void setFilterStats(boolean filterStats) {
+        this.filterStats = filterStats;
+    }
+
+    public Connection getConnection() {
+        return connection;
+    }
+
+    public void setConnection(Connection connection) {
+        this.connection = connection;
+    }
 }

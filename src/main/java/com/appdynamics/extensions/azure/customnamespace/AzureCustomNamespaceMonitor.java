@@ -2,6 +2,7 @@ package com.appdynamics.extensions.azure.customnamespace;
 
 import com.appdynamics.extensions.TasksExecutionServiceProvider;
 import com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons.AzureMonitor;
+import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
 import com.appdynamics.extensions.azure.customnamespace.config.Stat;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.CONFIG_FILE;
@@ -18,6 +19,7 @@ import org.apache.log4j.PatternLayout;
 import org.slf4j.Logger;
 
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -49,16 +51,21 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
     }
 
     @Override
+    protected List<Map<String, ?>> getAccounts() {
+        return null;
+    }
+
+    @Override
     protected List<Metric> getStatsForUpload(TasksExecutionServiceProvider tasksExecutionServiceProvider, Configuration config) {
         List<Metric> collectedMetrics = Arrays.asList();
         String service = config.getService();
         try {
-            List<Map<String, ?>> accounts = getAccounts();
+            List<Account> accounts = config.getAccounts();
             String metricPrefix = config.getMetricPrefix();
-            for (Map<String, ?> account : accounts){
+            for (Account account : accounts) {
                 AssertUtils.assertNotNull(monitorContextConfiguration.getMetricsXml(), "Metrics xml not available");
                 AssertUtils.assertNotNull(account, "the account arguments are empty");
-                preprocessAccount(account, service);
+//                preprocessAccount(account, service);
                 AzureCustomNamespaceMonitorTask task = new AzureCustomNamespaceMonitorTask(monitorContextConfiguration, config, tasksExecutionServiceProvider.getMetricWriteHelper(), account, metricPrefix);
                 tasksExecutionServiceProvider.submit("accounts", task);
             }
@@ -68,24 +75,24 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
         return collectedMetrics;
     }
 
-    private void preprocessAccount(Map account, String service){
-        if(account.get("service") == null || ((String)account.get("service")).replaceAll("\\s", "").equals(""))
-            account.put("service", service);
-    }
+//    private void preprocessAccount(Map account, String service){
+//        if(account.get("service") == null || ((String)account.get("service")).replaceAll("\\s", "").equals(""))
+//            account.put("service", service);
+//    }
     //
 //    //TODO put all the one time tasks/optimizations/cache building/resourceGroup API calls here
 //    @Override
 //    protected void onConfigReload(File file) {
 //        System.out.println();
 //    }
-    @Override
-    protected List<Map<String, ?>> getAccounts() {
-        Map<String, ?> config = monitorContextConfiguration.getConfigYml();
-        AssertUtils.assertNotNull(config, "The config is not loaded due to previous error");
-        List<Map<String, ?>> accounts = (List<Map<String, ?>>) config.get("accounts");
-        AssertUtils.assertNotNull(accounts, "The 'instances' section in config.yml is not initialised");
-        return accounts;
-    }
+//    @Override
+//    protected List<Map<String, ?>> getAccounts() {
+//        Map<String, ?> config = monitorContextConfiguration.getConfigYml();
+//        AssertUtils.assertNotNull(config, "The config is not loaded due to previous error");
+//        List<Map<String, ?>> accounts = (List<Map<String, ?>>) config.get("accounts");
+//        AssertUtils.assertNotNull(accounts, "The 'instances' section in config.yml is not initialised");
+//        return accounts;
+//    }
 
 
     protected org.slf4j.Logger getLogger() {
@@ -97,6 +104,14 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
         monitorContextConfiguration = getContextConfiguration();
         LOGGER.info("initializing metric.xml file");
         monitorContextConfiguration.setMetricXml(args.get("metric-file"), Stat.Stats.class);
+    }
+
+    @Override
+    protected List<Map<String, ?>> getServers() {
+        Map<String, String> serversMap = new HashMap<String, String>();
+        List<Map<String, ?>> serversList = new ArrayList<Map<String, ?>>();
+        serversList.add(serversMap);
+        return serversList;
     }
 
     public static void main(String[] args) throws TaskExecutionException {

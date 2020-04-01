@@ -23,6 +23,8 @@ public class MetricConfig {
     @XmlAttribute
     private String alias;
     @XmlAttribute
+    private String timeSpan;
+    @XmlAttribute
     private String aggregationType;
     @XmlAttribute
     private String timeRollUpType;
@@ -86,4 +88,12 @@ public class MetricConfig {
     public void setConvert(MetricConverter[] convert) { this.convert = convert; }
 
     public MetricConverter[] getMetricConverter(){ return convert; }
+
+    public String getTimeSpan() {
+        return timeSpan;
+    }
+
+    public void setTimeSpan(String timeSpan) {
+        this.timeSpan = timeSpan;
+    }
 }

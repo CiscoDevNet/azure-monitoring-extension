@@ -9,6 +9,7 @@
 
 package com.appdynamics.extensions.azure.customnamespace.config;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -23,11 +24,13 @@ public class Account {
 
 	private Set<String> resourceGroups;
 
-	private String service;
+	private List<Service> services;
 
 	private String interval;
 
-	private Set<String> regions;
+	private List<String> regions;
+
+	private List<Target> targets;
 	
 	public String getDisplayName() {
 		return displayName;
@@ -37,6 +40,8 @@ public class Account {
 		this.displayName = displayName;
 	}
 
+    private List<Server> servers;
+
 	public Set<String> getResourceGroups() {
 		return resourceGroups;
 	}
@@ -45,20 +50,28 @@ public class Account {
 		this.resourceGroups = resourceGroups;
 	}
 
-	public String getService() {
-		return service;
-	}
-
-	public void setService(String service) {
-		this.service = service;
-	}
-
-	public Set<String> getRegions() {
+	public List<String> getRegions() {
 		return regions;
 	}
 
-	public void setRegions(Set<String> regions) {
+	public void setRegions(List<String> regions) {
 		this.regions = regions;
+	}
+
+    public List<Server> getServers() {
+        return servers;
+    }
+
+    public void setServers(List<Server> servers) {
+        this.servers = servers;
+    }
+
+	public String 	getInterval() {
+		return interval;
+	}
+
+	public void setInterval(String interval) {
+		this.interval = interval;
 	}
 
 	public Credentials getCredentials() {
@@ -69,11 +82,19 @@ public class Account {
 		this.credentials = credentials;
 	}
 
-	public String getInterval() {
-		return interval;
+	public List<Service> getServices() {
+		return services;
 	}
 
-	public void setInterval(String interval) {
-		this.interval = interval;
+	public void setServices(List<Service> services) {
+		this.services = services;
+	}
+
+	public List<Target> getTargets() {
+		return targets;
+	}
+
+	public void setTargets(List<Target> targets) {
+		this.targets = targets;
 	}
 }

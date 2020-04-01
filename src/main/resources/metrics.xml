@@ -17,44 +17,44 @@ Set delta = true for metric to report per-min data
 <stats>
     <!--Add stat for each of the service-->
     <stat service="Virtual machine" resourceType="Microsoft.Compute">
-        <metric attr="Percentage CPU" alias="Percentage CPU" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Network In Billable" alias="Network In Billable" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Network Out Billable" alias="Network Out Billable" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Disk Read Bytes" alias="Disk Read Bytes" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Disk Write Bytes" alias="Disk Write Bytes" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Disk Read Operations/Sec" alias="Disk Read Operations/Sec" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Disk Write Operations/Sec" alias="Disk Write Operations/Sec" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="CPU Credits Remaining" alias="CPU Credits Remaining" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="CPU Credits Consumed" alias="CPU Credits Consumed" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Data Disk Read Bytes/Sec (Deprecated)" alias="Data Disk Read Bytes/Sec (Deprecated)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Data Disk Write Bytes/Sec (Deprecated)" alias="Data Disk Write Bytes/Sec (Deprecated)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Data Disk Read Operations/Sec (Deprecated)" alias="Data Disk Read Operations/Sec (Deprecated)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Data Disk Write Operations/Sec (Deprecated)" alias="Data Disk Write Operations/Sec (Deprecated)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Data Disk QD (Deprecated)" alias="Data Disk QD (Deprecated)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="OS Disk Read Bytes/Sec (Deprecated)" alias="OS Disk Read Bytes/Sec (Deprecated)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="OS Disk Write Bytes/Sec (Deprecated)" alias="OS Disk Write Bytes/Sec (Deprecated)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="OS Disk Read Operations/Sec (Deprecated)" alias="OS Disk Read Operations/Sec (Deprecated)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="OS Disk Write Operations/Sec (Deprecated)" alias="OS Disk Write Operations/Sec (Deprecated)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="OS Disk QD (Deprecated)" alias="OS Disk QD (Deprecated)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Data Disk Read Bytes/Sec (Preview)" alias="Data Disk Read Bytes/Sec (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Data Disk Write Bytes/Sec (Preview)" alias="Data Disk Write Bytes/Sec (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Data Disk Read Operations/Sec (Preview)" alias="Data Disk Read Operations/Sec (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Data Disk Write Operations/Sec (Preview)" alias="Data Disk Write Operations/Sec (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Data Disk Queue Depth (Preview)" alias="Data Disk Queue Depth (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="OS Disk Read Bytes/Sec (Preview)" alias="OS Disk Read Bytes/Sec (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="OS Disk Write Bytes/Sec (Preview)" alias="OS Disk Write Bytes/Sec (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="OS Disk Read Operations/Sec (Preview)" alias="OS Disk Read Operations/Sec (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="OS Disk Write Operations/Sec (Preview)" alias="OS Disk Write Operations/Sec (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="OS Disk Queue Depth (Preview)" alias="OS Disk Queue Depth (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Inbound Flows" alias="Inbound Flows" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Outbound Flows" alias="Outbound Flows" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Inbound Flows Maximum Creation Rate (Preview)" alias="Inbound Flows Maximum Creation Rate (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Outbound Flows Maximum Creation Rate (Preview)" alias="Outbound Flows Maximum Creation Rate (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Premium Data Disk Cache Read Hit (Preview)" alias="Premium Data Disk Cache Read Hit (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Premium Data Disk Cache Read Miss (Preview)" alias="Premium Data Disk Cache Read Miss (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Premium OS Disk Cache Read Hit (Preview)" alias="Premium OS Disk Cache Read Hit (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Premium OS Disk Cache Read Miss (Preview)" alias="Premium OS Disk Cache Read Miss (Preview)" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Network In Total" alias="Network In Total" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
-        <metric attr="Network Out Total" alias="Network Out Total" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Percentage CPU" alias="Percentage CPU" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Network In Billable" alias="Network In Billable" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Network Out Billable" alias="Network Out Billable" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Disk Read Bytes" alias="Disk Read Bytes" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Disk Write Bytes" alias="Disk Write Bytes" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Disk Read Operations/Sec" alias="Disk Read Operations/Sec" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Disk Write Operations/Sec" alias="Disk Write Operations/Sec" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="CPU Credits Remaining" alias="CPU Credits Remaining" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="CPU Credits Consumed" alias="CPU Credits Consumed" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Data Disk Read Bytes/Sec (Deprecated)" alias="Data Disk Read Bytes/Sec (Deprecated)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Data Disk Write Bytes/Sec (Deprecated)" alias="Data Disk Write Bytes/Sec (Deprecated)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Data Disk Read Operations/Sec (Deprecated)" alias="Data Disk Read Operations/Sec (Deprecated)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Data Disk Write Operations/Sec (Deprecated)" alias="Data Disk Write Operations/Sec (Deprecated)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Data Disk QD (Deprecated)" alias="Data Disk QD (Deprecated)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="OS Disk Read Bytes/Sec (Deprecated)" alias="OS Disk Read Bytes/Sec (Deprecated)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="OS Disk Write Bytes/Sec (Deprecated)" alias="OS Disk Write Bytes/Sec (Deprecated)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="OS Disk Read Operations/Sec (Deprecated)" alias="OS Disk Read Operations/Sec (Deprecated)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="OS Disk Write Operations/Sec (Deprecated)" alias="OS Disk Write Operations/Sec (Deprecated)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="OS Disk QD (Deprecated)" alias="OS Disk QD (Deprecated)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Data Disk Read Bytes/Sec (Preview)" alias="Data Disk Read Bytes/Sec (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Data Disk Write Bytes/Sec (Preview)" alias="Data Disk Write Bytes/Sec (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Data Disk Read Operations/Sec (Preview)" alias="Data Disk Read Operations/Sec (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Data Disk Write Operations/Sec (Preview)" alias="Data Disk Write Operations/Sec (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Data Disk Queue Depth (Preview)" alias="Data Disk Queue Depth (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="OS Disk Read Bytes/Sec (Preview)" alias="OS Disk Read Bytes/Sec (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="OS Disk Write Bytes/Sec (Preview)" alias="OS Disk Write Bytes/Sec (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="OS Disk Read Operations/Sec (Preview)" alias="OS Disk Read Operations/Sec (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="OS Disk Write Operations/Sec (Preview)" alias="OS Disk Write Operations/Sec (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="OS Disk Queue Depth (Preview)" alias="OS Disk Queue Depth (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Inbound Flows" alias="Inbound Flows" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Outbound Flows" alias="Outbound Flows" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Inbound Flows Maximum Creation Rate (Preview)" alias="Inbound Flows Maximum Creation Rate (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Outbound Flows Maximum Creation Rate (Preview)" alias="Outbound Flows Maximum Creation Rate (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Premium Data Disk Cache Read Hit (Preview)" alias="Premium Data Disk Cache Read Hit (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Premium Data Disk Cache Read Miss (Preview)" alias="Premium Data Disk Cache Read Miss (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Premium OS Disk Cache Read Hit (Preview)" alias="Premium OS Disk Cache Read Hit (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Premium OS Disk Cache Read Miss (Preview)" alias="Premium OS Disk Cache Read Miss (Preview)" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Network In Total" alias="Network In Total" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Network Out Total" alias="Network Out Total" timeSpan="PT1M" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
     </stat>
 </stats>

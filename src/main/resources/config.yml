@@ -2,46 +2,39 @@
 metricPrefix: "Server|Component:<TIER_ID>|Custom Metrics|Azure|"
 #metricPrefix: "Custom Metrics|Azure|"
 
-service: ""
-
 accounts:
-  - displayName: "AzureAccount VM"
-    resourceGroups: [".*"]  # Please put the concerned resourceGroups only
-    service: "Virtual machine"
-#    intervals of different services are different(min 5 mins for Vm and 60 mins for storage acccount), and should be configured more
-#    than minimum else the api query throws error
-    interval: 5  #in minute
-    regions: [".*"]
+  - displayName: "Azure Container instances"
     credentials:
          client: ""
          tenant: ""
          secret: ""
          subscriptionId: ""
-#         Provide cert file path if used, supports json as well
-#         certAuthFilePath: <Your-Cert-Path>
+    services:
+       - resourceGroups: ["my.*"]  # Please put the required resourceGroups only
+         serviceName: "Virtual machine"
+         regions: [".*"]
+         serviceInstances: [".*"]
+
+# aggregationType ==> "None", "Average", "Minimum", "Maximum", "Total", "Count" refer: https://docs.microsoft.com/en-us/azure/azure-monitor/app/metrics-explorer
+    targets:
+       - displayName: "Az Containers"
+         resource: "/resourceGroups/<MY-RESOURCE-GROUP>/providers/Microsoft.Compute/virtualMachines/<MY-RESOURCE>/providers/microsoft.insights/metrics"
+         resourceGroups: ["my-rg"]
+         serviceInstances: ["my-vm"]
+         metrics:
+            - attr: "Network In Total"
+              aggregationType: "count"
+            - attr: "Network Out Total"
+              aggregationType: "count"
+            - attr: "Disk Write Bytes"
+              aggregationType: "count"
+            - attr: "Disk Read Operations/Sec"
+              aggregationType: "count"
+            - attr: "Disk Write Operations/Sec"
+              aggregationType: "count"
 
 
-#  - displayName: "AzureAccount Storage"
-#    resourceGroups: [".*"]
-#    service: "Storage account"
-#    interval: 60  #in minute
-#    regions: [".*"]
-#    credentials:
-#         client: ""
-#         tenant: ""
-#         secret: ""
-#         subscriptionId: ""
-#
-#  - displayName: "AzureAccount Container"
-#    resourceGroups: [".*"]
-#    service: "Container instances"
-#    interval: 5  #in minute
-#    regions: [".*"]
-#    credentials:
-#         client: ""
-#         tenant: ""
-#         secret: ""
-#         subscriptionId: ""
+filterStats: false # flag to use metrics.xml. Default set to false.
 
 #Provide Encryption key for Encrypted password.
 credentialsDecryptionConfig:
@@ -60,8 +53,27 @@ metricsTimeRange:
 
 concurrencyConfig:
   noOfResourceGroupThreads: 3
-  noOfMetricsCollectorThreads: 3
+  noOfServiceCollectorThreads: 3
   threadTimeout: 30  #Thread timeout in seconds
 
-#TODO: decide an equation for threads being used
-numberOfThreads: 3
+connection:
+  sslCertCheckEnabled: false
+  socketTimeout: 10000
+  connectTimeout: 10000
+
+#By default we support upto 5 accounts, and 1 thread is required per account.
+numberOfThreads: 5
+
+
+#================================= Example configurations below =================================
+#  - displayName: "AzureAccount Storage"
+#    resourceGroups: ["test-ext.*"]
+#    serviceName: "Storage account"
+#    regions: ["East US"]
+#    serviceInstances: [".*"]
+
+#  - displayName: "AzureAccount Sql server"
+#    resourceGroups: [".*"]
+#    serviceName: "SQL server"
+#    regions: ["australia.*"]
+#    serviceInstances: [".*"]

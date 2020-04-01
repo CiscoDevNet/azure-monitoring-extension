@@ -61,7 +61,9 @@ public abstract class AzureMonitor<T> extends ABaseMonitor {
         }
     }
 
-    protected List<Map<String, ?>> getServers(){ return getAccounts(); }
+    protected List<Map<String, ?>> getServers() {
+        return getAccounts();
+    }
 
     protected abstract List<Map<String, ?>> getAccounts();
 
