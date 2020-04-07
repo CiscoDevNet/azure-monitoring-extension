@@ -11,7 +11,7 @@ object Project : Project({
     uuid = "48a46fc4-076f-43f1-a606-4047dd46ceb6"
     id("AE_AzureCustomNamespaceMonitoringExtension")
     parentId("AE")
-    name = "Azure CustomNamespace Monitoring Extension"
+    name = "Azure CustomNamespace Monitoring ExtensionBB"
 
     vcsRoot(AE_AzureCustomNamespaceMonitoringExtension_Azurecustomnamespacemonitoringextensionci)
     vcsRoot(AE_AzureCustomNamespaceMonitoringExtension_Azurecustomnamespacemonitoringextensiongitci)
