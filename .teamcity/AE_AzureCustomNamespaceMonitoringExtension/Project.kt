@@ -14,6 +14,7 @@ object Project : Project({
     name = "Azure CustomNamespace Monitoring Extension"
 
     vcsRoot(AE_AzureCustomNamespaceMonitoringExtension_Azurecustomnamespacemonitoringextensionci)
+    vcsRoot(AE_AzureCustomNamespaceMonitoringExtension_Azurecustomnamespacemonitoringextensiongitci)
 
     features {
         versionedSettings {
