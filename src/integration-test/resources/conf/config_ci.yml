@@ -3,17 +3,18 @@ metricPrefix: "Server|Component:<TIER_ID>|Custom Metrics|Azure|"
 #metricPrefix: "Custom Metrics|Azure|"
 
 accounts:
-  - displayName: "Azure VM"
+  - displayName: "Azure Storage Monitor"
     credentials:
          client: ""
          tenant: ""
          secret: ""
          subscriptionId: ""
+
     services:
-       - resourceGroups: ["my.*"]  # Please put the required resourceGroups only
-         serviceName: "Virtual machine"
-         regions: [".*"]
-         serviceInstances: [".*"]
+       - resourceGroups: ["my-rg-tf"]  # Please put the required resourceGroups only
+         serviceName: "Storage account"
+         regions: ["eastus"]
+         serviceInstances: ["diag.*"]
 
 # aggregationType ==> "None", "Average", "Minimum", "Maximum", "Total", "Count" refer: https://docs.microsoft.com/en-us/azure/azure-monitor/app/metrics-explorer
 #    targets:

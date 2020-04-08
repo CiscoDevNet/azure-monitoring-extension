@@ -10,3 +10,5 @@ bin/
 .DS_Store
 .idea
 resource-version.json
+*.tfstate*
+.terraform/
