@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.atomic.LongAdder;
 
 /*
  Copyright 2019. AppDynamics LLC and its affiliates.
@@ -43,6 +44,8 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
     private Azure azure;
     private BigInteger heartBeat = BigInteger.valueOf(0);
     private AuthenticationResult authTokenResult;
+    private LongAdder azureRequestCounter = new LongAdder();
+
 
     public AzureCustomNamespaceMonitorTask(MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, Account account, String metricPrefix) {
         this.monitorContextConfiguration = monitorContextConfiguration;
@@ -87,6 +90,8 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
         } finally {
             Metric heartbeat = new Metric("Heartbeat", String.valueOf(heartBeat), metricPrefix + "Heartbeat");
             metrics.add(heartbeat);
+            Metric ApiCalls = new Metric("Azure API Calls", Double.toString(this.azureRequestCounter.doubleValue()), metricPrefix + "Azure API Calls");
+            metrics.add(ApiCalls);
             metricWriteHelper.transformAndPrintMetrics(metrics);
         }
     }
@@ -98,7 +103,7 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
             for (Service service : services) {
                 try {
                     LOGGER.debug("Started processing the service {}", service.getServiceName());
-                    AzureServiceCollector serviceCollectorTask = new AzureServiceCollector(azure, account, monitorContextConfiguration, config, metricWriteHelper, service, metricPrefix);
+                    AzureServiceCollector serviceCollectorTask = new AzureServiceCollector(azure, account, monitorContextConfiguration, config, metricWriteHelper, service, metricPrefix, azureRequestCounter);
                     FutureTask<List<Metric>> accountExecutorTask = new FutureTask(serviceCollectorTask);
                     executorService.submit("AzureCustomNamespaceMonitorTask", accountExecutorTask);
                     futureTasks.add(accountExecutorTask);

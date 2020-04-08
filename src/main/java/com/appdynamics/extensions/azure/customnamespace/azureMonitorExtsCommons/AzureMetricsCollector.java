@@ -61,6 +61,7 @@ import org.joda.time.Period;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.concurrent.atomic.LongAdder;
 
 /*
  Copyright 2019. AppDynamics LLC and its affiliates.
@@ -73,11 +74,13 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
     private T service;
     private Service monitoringService;
     private String matchedServiceName;
+    private LongAdder requestCounter;
 
-    public AzureMetricsCollector(Azure azure, Account account, Service monitoringService, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, String metricPrefix, T cont) {
-        super(azure, account, monitorContextConfiguration, config, metricWriteHelper, metricPrefix);
+    public AzureMetricsCollector(Azure azure, Account account, Service monitoringService, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, String metricPrefix, T cont, LongAdder requestCounter) {
+        super(azure, account, monitorContextConfiguration, config, metricWriteHelper, metricPrefix, requestCounter);
         this.service = cont;
         this.monitoringService = monitoringService;
+        this.requestCounter = requestCounter;
     }
 
     @Override
@@ -115,6 +118,7 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
         DateTime recordDateTime = DateTime.now();
         List<Metric> metrics = Lists.newArrayList();
         MetricCollection metricCollection = buildAndExecuteQuery(metricDefinition, recordDateTime, matchedConfig);
+        requestCounter.increment();
         for (com.microsoft.azure.management.monitor.Metric azureMetric : metricCollection.metrics()) {
             for (TimeSeriesElement timeElement : azureMetric.timeseries()) {
                 MetricValue latestElement = getLatestTimeSeriesElement(timeElement);
