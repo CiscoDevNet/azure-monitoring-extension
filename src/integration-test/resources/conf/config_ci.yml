@@ -1,6 +1,6 @@
 #prefix used to show metrics in AppDynamics
-metricPrefix: "Server|Component:<TIER_ID>|Custom Metrics|Azure|"
-#metricPrefix: "Custom Metrics|Azure|"
+#metricPrefix: "Server|Component:<TIER_ID>|Custom Metrics|Azure|"
+metricPrefix: "Custom Metrics|Azure|"
 
 accounts:
   - displayName: "Azure Storage Monitor"
@@ -65,7 +65,23 @@ connection:
 #By default we support upto 5 accounts, and 1 thread is required per account.
 numberOfThreads: 5
 
-
+controllerInfo:
+    controllerHost: "controller"
+    controllerPort: 8080
+    account: "customer1"
+    username: "user1"
+    password: "welcome"
+    encryptedPassword: ""
+    encryptionKey: ""
+    controllerSslEnabled: false
+    enableOrchestration: false
+    uniqueHostId: ""
+    accountAccessKey: "SJ5b2m7d1$$354"
+    machinePath: ""
+    simEnabled: true
+    applicationName: ""
+    tierName: ""
+    nodeName: ""
 #================================= Example configurations below =================================
 #  - displayName: "AzureAccount Storage"
 #    resourceGroups: ["test-ext.*"]
