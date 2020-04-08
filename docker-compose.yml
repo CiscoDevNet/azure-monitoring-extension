@@ -3,7 +3,7 @@ version: '3'
 services:
   controller:
     image: dtr.corp.appdynamics.com/appdynamics/enterprise-console:latest
-    conta`iner_name: controller
+    container_name: controller
     ports:
       - "8080:8080"
       - "9080:9080"
