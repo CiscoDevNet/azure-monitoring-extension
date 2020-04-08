@@ -5,10 +5,10 @@ metricPrefix: "Custom Metrics|Azure|"
 accounts:
   - displayName: "Azure Storage Monitor"
     credentials:
-         client: ""
-         tenant: ""
-         secret: ""
-         subscriptionId: ""
+         client: "${CLIENT_ID}"
+         tenant: "${TENANT_ID}"
+         secret: "${CLIENT_SECRET}"
+         subscriptionId: "${SUBSCRIPTION_ID}"
 
     services:
        - resourceGroups: ["my-rg-tf"]  # Please put the required resourceGroups only
