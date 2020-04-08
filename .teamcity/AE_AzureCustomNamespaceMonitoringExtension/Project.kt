@@ -5,6 +5,7 @@ import AE_AzureCustomNamespaceMonitoringExtension.buildTypes.*
 import jetbrains.buildServer.configs.kotlin.v2018_2.*
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.VersionedSettings
+import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.versionedSettings
 
 object Project : Project({
     uuid = "8a2085ee-30c8-40c8-b68d-0c86abe73148"
