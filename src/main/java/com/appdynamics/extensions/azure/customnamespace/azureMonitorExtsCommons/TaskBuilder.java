@@ -9,6 +9,7 @@ import com.microsoft.azure.management.Azure;
 
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.LongAdder;
 
 /*
  Copyright 2019. AppDynamics LLC and its affiliates.
@@ -23,13 +24,15 @@ public abstract class TaskBuilder implements Callable<List<Metric>> {
     protected Configuration config;
     protected MetricWriteHelper metricWriteHelper;
     protected String metricPrefix;
+    protected LongAdder requestCounter;
 
-    public TaskBuilder(Azure azure, Account account, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, String metricPrefix) {
+    public TaskBuilder(Azure azure, Account account, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, String metricPrefix, LongAdder requestCounter) {
         this.azure = azure;
         this.account = account;
         this.monitorContextConfiguration = monitorContextConfiguration;
         this.config = config;
         this.metricWriteHelper = metricWriteHelper;
         this.metricPrefix = metricPrefix;
+        this.requestCounter = requestCounter;
     }
 }

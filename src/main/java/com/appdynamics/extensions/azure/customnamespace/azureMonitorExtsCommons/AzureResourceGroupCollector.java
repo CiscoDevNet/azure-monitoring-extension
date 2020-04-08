@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import java.util.List;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.atomic.LongAdder;
 
 /*
  Copyright 2019. AppDynamics LLC and its affiliates.
@@ -29,11 +30,12 @@ public class AzureResourceGroupCollector<T> extends TaskBuilder {
     private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger("AzureResourceGroupCollector.class");
     private String resourceGroup;
     private Service service;
-
-    public AzureResourceGroupCollector(Azure azure, Account account, Service service, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, String resourceGroup, String metricPrefix) {
-        super(azure, account, monitorContextConfiguration, config, metricWriteHelper, metricPrefix);
+    private LongAdder requestCounter;
+    public AzureResourceGroupCollector(Azure azure, Account account, Service service, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, String resourceGroup, String metricPrefix, LongAdder requestCounter) {
+        super(azure, account, monitorContextConfiguration, config, metricWriteHelper, metricPrefix, requestCounter);
         this.resourceGroup = resourceGroup;
         this.service = service;
+        this.requestCounter = requestCounter;
     }
 
     public List<Metric> call() {
@@ -59,7 +61,7 @@ public class AzureResourceGroupCollector<T> extends TaskBuilder {
         for (T serviceQueried : servicesList) {
             try {
                 LOGGER.debug("starting AzureMetricCollector task for {}", resourceGroup);
-                AzureMetricsCollector<T> accountTask = new AzureMetricsCollector(azure, account, service, monitorContextConfiguration, config, metricWriteHelper, metricPrefix, serviceQueried);
+                AzureMetricsCollector<T> accountTask = new AzureMetricsCollector(azure, account, service, monitorContextConfiguration, config, metricWriteHelper, metricPrefix, serviceQueried, requestCounter);
                 FutureTask<List<Metric>> accountExecutorTask = new FutureTask(accountTask);
                 executorService.submit("AzureResourceGroupCollector", accountExecutorTask);
                 tasks.add(accountExecutorTask);
