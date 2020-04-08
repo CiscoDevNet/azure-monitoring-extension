@@ -1,7 +1,7 @@
 package AE_AzureCustomNamespaceMonitoringExtension.vcsRoots
 
-import jetbrains.buildServer.configs.kotlin.v2019_2.*
-import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
+import jetbrains.buildServer.configs.kotlin.v2018_2.*
+import jetbrains.buildServer.configs.kotlin.v2018_2.vcs.GitVcsRoot
 
 object AE_AzureCustomNamespaceMonitoringExtension : GitVcsRoot({
     uuid = "2de54c27-e130-4cea-8fef-57045953bbdf"

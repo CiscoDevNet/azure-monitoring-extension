@@ -1,11 +1,10 @@
 package AE_AzureCustomNamespaceMonitoringExtension
 
-import AE_AzureCustomNamespaceMonitoringExtension.buildTypes.*
 import AE_AzureCustomNamespaceMonitoringExtension.vcsRoots.AE_AzureCustomNamespaceMonitoringExtension
-import jetbrains.buildServer.configs.kotlin.v2019_2.*
-import jetbrains.buildServer.configs.kotlin.v2019_2.Project
-import jetbrains.buildServer.configs.kotlin.v2019_2.projectFeatures.VersionedSettings
-import jetbrains.buildServer.configs.kotlin.v2019_2.projectFeatures.versionedSettings
+import AE_AzureCustomNamespaceMonitoringExtension.buildTypes.*
+import jetbrains.buildServer.configs.kotlin.v2018_2.*
+import jetbrains.buildServer.configs.kotlin.v2018_2.Project
+import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.VersionedSettings
 
 object Project : Project({
     uuid = "8a2085ee-30c8-40c8-b68d-0c86abe73148"
@@ -20,7 +19,7 @@ object Project : Project({
 
     features {
         versionedSettings {
-            id = "PROJECT_EXT_4"
+            id = "PROJECT_EXT_2"
             mode = VersionedSettings.Mode.ENABLED
             buildSettingsMode = VersionedSettings.BuildSettingsMode.PREFER_SETTINGS_FROM_VCS
             rootExtId = "${AE_AzureCustomNamespaceMonitoringExtension.id}"
