@@ -45,8 +45,20 @@ public class MetricCheckIT {
             jsonNode = metricAPIService.getMetricData("", "Server%20&%20Infrastructure%20Monitoring/metric-data?metric-path=Application%20Infrastructure%20Performance%7CRoot%7CCustom%20Metrics%7CAzure%7CAzure%20API%20Calls&time-range-type=BEFORE_NOW&duration-in-mins=15&output=JSON");
         }
         Assert.assertNotNull("Cannot connect to controller API", jsonNode);
-        JsonNode valueNode = JsonUtils.getNestedObject(jsonNode, "*", "metricId");
-        Assert.assertTrue("Azure API Calls", valueNode.get(0).getIntValue() > 0);
+        // Keeping this for deugging purpose
+        JsonNode valueNode = null;
+        try {
+            System.out.println("JsonNode : " + jsonNode);
+            valueNode = JsonUtils.getNestedObject(jsonNode, "*", "metricId");
+            System.out.println("valueNode : " + valueNode);
+            System.out.println("valueNode_assert_value : " + valueNode.get(0).getIntValue());
+            Assert.assertTrue(jsonNode.toString(), false);
+        } catch (AssertionError | Exception e) {
+            // Dummy echo output
+            System.out.println("Assert error: " + e);
+            System.out.println("JsonNode: " + jsonNode + " valueNode : " + valueNode);
+        }
+        Assert.assertTrue("AWS API Calls", valueNode.get(0).getIntValue() > 0);
 
     }
 
