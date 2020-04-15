@@ -3,13 +3,13 @@ package com.appdynamics.extensions.azure.customnamespace;
 import com.appdynamics.extensions.AMonitorTaskRunnable;
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.azure.customnamespace.azureAuthStore.AuthenticationFactory;
+import com.appdynamics.extensions.azure.customnamespace.azureTarget.AzureTargetMonitorTask;
 import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
 import com.appdynamics.extensions.azure.customnamespace.config.Service;
 import com.appdynamics.extensions.azure.customnamespace.config.Target;
 import com.appdynamics.extensions.azure.customnamespace.utils.AzureApiVersionStore;
 import com.appdynamics.extensions.azure.customnamespace.utils.CommonUtilities;
-import static com.appdynamics.extensions.azure.customnamespace.utils.CommonUtilities.checkStringPatternMatch;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.executorservice.MonitorExecutorService;
 import com.appdynamics.extensions.executorservice.MonitorThreadPoolExecutor;
@@ -18,7 +18,6 @@ import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.microsoft.aad.adal4j.AuthenticationResult;
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.resources.ResourceGroup;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -59,7 +58,6 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
         try {
             LOGGER.debug("Starting processing for the account {}", account.getDisplayName());
             azure = AuthenticationFactory.getAzure(account.getCredentials());
-            authTokenResult = AuthenticationFactory.getAccessTokenFromUserCredentials();
             if (azure == null)
                 throw new Exception("Failed: built Azure object is null");
             else
@@ -90,8 +88,8 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
         } finally {
             Metric heartbeat = new Metric("Heartbeat", String.valueOf(heartBeat), metricPrefix + "Heartbeat");
             metrics.add(heartbeat);
-            Metric ApiCalls = new Metric("Azure API Calls", Double.toString(this.azureRequestCounter.doubleValue()), metricPrefix + "Azure API Calls");
-            metrics.add(ApiCalls);
+            Metric apiCallsMetric = new Metric("Azure API Calls", Double.toString(this.azureRequestCounter.doubleValue()), metricPrefix + "Azure API Calls");
+            metrics.add(apiCallsMetric);
             metricWriteHelper.transformAndPrintMetrics(metrics);
         }
     }
@@ -103,7 +101,15 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
             for (Service service : services) {
                 try {
                     LOGGER.debug("Started processing the service {}", service.getServiceName());
-                    AzureServiceCollector serviceCollectorTask = new AzureServiceCollector(azure, account, monitorContextConfiguration, config, metricWriteHelper, service, metricPrefix, azureRequestCounter);
+                    AzureServiceCollector serviceCollectorTask = new AzureServiceCollector.Builder()
+                            .withAzure(azure)
+                            .withService(service)
+                            .withAccount(account)
+                            .withMonitorContextConfiguration(monitorContextConfiguration)
+                            .withConfig(config)
+                            .withMetricPrefix(metricPrefix)
+                            .withRequestCounter(azureRequestCounter)
+                            .build();
                     FutureTask<List<Metric>> accountExecutorTask = new FutureTask(serviceCollectorTask);
                     executorService.submit("AzureCustomNamespaceMonitorTask", accountExecutorTask);
                     futureTasks.add(accountExecutorTask);
@@ -119,14 +125,23 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
     }
 
 
-    private List<FutureTask<List<Metric>>> buildFutureTargetTasks(MonitorExecutorService executorService, List<Target> servers) {
+    private List<FutureTask<List<Metric>>> buildFutureTargetTasks(MonitorExecutorService executorService, List<Target> targets) {
         List<FutureTask<List<Metric>>> futureTasks = Lists.newArrayList();
         String targetName = null;
         try {
-            for (Target server : servers) {
+            authTokenResult = AuthenticationFactory.getAccessTokenFromUserCredentials();
+            for (Target target : targets) {
                 try {
-                    targetName = server.getDisplayName();
-                    AzureTargetMonitorTask targetTask = new AzureTargetMonitorTask(server, config.getConnection(), authTokenResult, metricPrefix, account.getCredentials().getSubscriptionId());
+                    targetName = target.getDisplayName();
+                    AzureTargetMonitorTask targetTask = new AzureTargetMonitorTask.Builder()
+                                .withTarget(target)
+                                .withAuthenticationResult(authTokenResult)
+                                .withConfiguration(config)
+                                .withSubscriptionId(account.getCredentials().getSubscriptionId())
+                                .withMetricPrefix(metricPrefix)
+                                .withRequestCounter(azureRequestCounter)
+                                .build();
+
                     FutureTask<List<Metric>> targetExecutorTask = new FutureTask(targetTask);
                     executorService.submit("AzureTargetMonitorTask", targetExecutorTask);
                     futureTasks.add(targetExecutorTask);
@@ -139,19 +154,6 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
         } finally {
             return futureTasks;
         }
-    }
-
-    private List<ResourceGroup> regionFilteredResourceGroups(List<ResourceGroup> resourceGroups, List<String> confResourceGroups, List<String> regions) {
-        List<ResourceGroup> filteredResourceGroup = Lists.newArrayList();
-        for (ResourceGroup resourceGroup : resourceGroups) {
-            if (checkStringPatternMatch(resourceGroup.name(), confResourceGroups) && checkStringPatternMatch(resourceGroup.regionName(), regions))
-                filteredResourceGroup.add(resourceGroup);
-            else
-                LOGGER.debug("No match for resourceGroup {}, Excluding it", resourceGroup.name());
-
-        }
-        return filteredResourceGroup;
-
     }
 
     private List<Metric> initTargetMetricsCollection(List<Target> targets) {

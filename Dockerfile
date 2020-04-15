@@ -1,7 +1,7 @@
 FROM alpine:latest
 RUN apk add --no-cache openjdk8
 WORKDIR /opt/appdynamics/machine-agent
-COPY --from=dtr.corp.appdynamics.com/appdynamics/machine-agent /opt/appdynamics/machine-agent .
+COPY --from=dtr.corp.appdynamics.com/appdynamics/machine-agent:4.5.18.2430 /opt/appdynamics/machine-agent .
 
 RUN apk update && apk add wget unzip
 

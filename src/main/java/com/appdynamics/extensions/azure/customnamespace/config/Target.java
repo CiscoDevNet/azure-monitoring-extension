@@ -19,8 +19,6 @@ public class Target {
     public String DisplayName;
     public String resource;
     public List<MetricConfig> metrics;
-    public String apiVersion;
-    public String timeSpan;
     public List<String> serviceInstances;
     public List<String> resourceGroups;
 
@@ -56,22 +54,6 @@ public class Target {
 
     public void setMetrics(List<MetricConfig> metrics) {
         this.metrics = metrics;
-    }
-
-    public String getApiVersion() {
-        return apiVersion;
-    }
-
-    public void setApiVersion(String apiVersion) {
-        this.apiVersion = apiVersion;
-    }
-
-    public String getTimeSpan() {
-        return timeSpan;
-    }
-
-    public void setTimeSpan(String timeSpan) {
-        this.timeSpan = timeSpan;
     }
 
     public String getDisplayName() {

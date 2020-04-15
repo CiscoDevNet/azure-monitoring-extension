@@ -40,6 +40,7 @@ public class CommonUtilities {
 
     public static List<Metric> collectFutureMetrics(List<FutureTask<List<Metric>>> tasks, int timeout, String taskSource) {
         List<Metric> metrics = Lists.newArrayList();
+        LOGGER.debug("Task collection started for : " + taskSource);
         for (FutureTask<List<Metric>> task : tasks) {
             try {
                 metrics = task.get(timeout, TimeUnit.SECONDS);

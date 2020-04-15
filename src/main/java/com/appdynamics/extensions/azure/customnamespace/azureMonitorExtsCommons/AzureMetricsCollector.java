@@ -1,6 +1,5 @@
 package com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons;
 
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
 import com.appdynamics.extensions.azure.customnamespace.config.MetricConfig;
@@ -19,7 +18,12 @@ import com.microsoft.azure.management.batch.BatchAccount;
 import com.microsoft.azure.management.batchai.BatchAIWorkspace;
 import com.microsoft.azure.management.cdn.CdnProfile;
 import com.microsoft.azure.management.compute.AvailabilitySet;
-import com.microsoft.azure.management.compute.*;
+import com.microsoft.azure.management.compute.Disk;
+import com.microsoft.azure.management.compute.Gallery;
+import com.microsoft.azure.management.compute.Snapshot;
+import com.microsoft.azure.management.compute.VirtualMachine;
+import com.microsoft.azure.management.compute.VirtualMachineCustomImage;
+import com.microsoft.azure.management.compute.VirtualMachineScaleSet;
 import com.microsoft.azure.management.containerinstance.ContainerGroup;
 import com.microsoft.azure.management.containerservice.ContainerService;
 import com.microsoft.azure.management.containerservice.KubernetesCluster;
@@ -61,6 +65,7 @@ import org.joda.time.Period;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.LongAdder;
 
 /*
@@ -69,18 +74,31 @@ import java.util.concurrent.atomic.LongAdder;
  This is unpublished proprietary source code of AppDynamics LLC and its affiliates.
  The copyright notice above does not evidence any actual or intended publication of such source code.
 */
-public class AzureMetricsCollector<T> extends TaskBuilder {
+public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
     private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger("AzureMetricsCollector.class");
-    private T service;
+    private Azure azure;
     private Service monitoringService;
-    private String matchedServiceName;
+    private Account account;
+    private MonitorContextConfiguration monitorContextConfiguration;
+    private Configuration config;
+    private String metricPrefix;
     private LongAdder requestCounter;
 
-    public AzureMetricsCollector(Azure azure, Account account, Service monitoringService, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, String metricPrefix, T cont, LongAdder requestCounter) {
-        super(azure, account, monitorContextConfiguration, config, metricWriteHelper, metricPrefix, requestCounter);
-        this.service = cont;
-        this.monitoringService = monitoringService;
-        this.requestCounter = requestCounter;
+    private T service;
+    private String matchedServiceName;
+
+    public AzureMetricsCollector(Builder builder) {
+        this.azure = builder.azure;
+        this.monitoringService = builder.monitoringService;
+        this.account = builder.account;
+        this.monitorContextConfiguration = builder.monitorContextConfiguration;
+        this.config = builder.config;
+        this.metricPrefix = builder.metricPrefix;
+        this.requestCounter = builder.requestCounter;
+    }
+
+    public void setService(T serviceQueryId){
+        this.service = serviceQueryId;
     }
 
     @Override
@@ -101,9 +119,9 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
                 LOGGER.debug("Starting metrics collection for displayname {}. service {}", account.getDisplayName(), matchedServiceName);
                 for (MetricDefinition metricDefinition : azure.metricDefinitions().listByResource(resourceId)) {
                     MetricConfig matchedConfig = isMetricConfigured(stats, metricDefinition.name().value());
-                    metrics.addAll(queryMetricDefinintion(metricDefinition, matchedConfig));
+                    metrics.addAll(queryMetricDefinition(metricDefinition, matchedConfig));
                 }
-                LOGGER.debug("Successfully collected all the metrics for displayname {}, service {}", account.getDisplayName(), matchedServiceName);
+                LOGGER.debug("Successfully collected all the metrics for display name {}, service {}", account.getDisplayName(), matchedServiceName);
             } else {
                 LOGGER.debug("service did not match for service {}", service.toString());
             }
@@ -114,7 +132,7 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
         }
     }
 
-    private List<Metric> queryMetricDefinintion(MetricDefinition metricDefinition, MetricConfig matchedConfig) {
+    private List<Metric> queryMetricDefinition(MetricDefinition metricDefinition, MetricConfig matchedConfig) {
         DateTime recordDateTime = DateTime.now();
         List<Metric> metrics = Lists.newArrayList();
         MetricCollection metricCollection = buildAndExecuteQuery(metricDefinition, recordDateTime, matchedConfig);
@@ -122,9 +140,8 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
         for (com.microsoft.azure.management.monitor.Metric azureMetric : metricCollection.metrics()) {
             for (TimeSeriesElement timeElement : azureMetric.timeseries()) {
                 MetricValue latestElement = getLatestTimeSeriesElement(timeElement);
-                String metricValue = fetchValueAsPerAggregatoin(latestElement, matchedConfig.getAggregationType());
+                String metricValue = fetchValueAsPerAggregation(latestElement, matchedConfig.getAggregationType());
                 if (!metricValue.equals("null")) {
-                    //TODO: should we put region/resourcegrp in metricss
                     Metric metric = new Metric(matchedConfig.getAlias(), metricValue, metricPrefix + matchedServiceName + METRIC_PATH_SEPARATOR + matchedConfig.getAlias());
                     metrics.add(metric);
                 }
@@ -141,7 +158,6 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
                     .endsBefore(recordDateTime.minusMinutes(config.getMetricsTimeRange().getEndTimeInMinsBeforeNow()))
                     .withAggregation(matchedConfig.getAggregationType())
                     .withInterval(Period.minutes(metricDefinition.metricAvailabilities().get(0).timeGrain().toStandardMinutes().getMinutes())); //TODO: pre-configure this time interval as per the requirement
-            //TODO: short-circuited the dimensions and fetch all
             if (metricDefinition.isDimensionRequired()) {
                 String defaultFilter = buildDimensionsFilterQuery(metricDefinition.dimensions());
                 metricsQueryExecute.withOdataFilter(defaultFilter);
@@ -152,7 +168,6 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
         }
         return null;
     }
-//"DatabaseResourceId eq '202f9a13-69d0-4a6e-a006-e7612275771f'"
 
     private boolean checkServiceDimensions(List<LocalizableString> dimensions) {
         if (dimensions == null || dimensions.size() == 0)
@@ -160,10 +175,6 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
         return true;
     }
 
-    //      Return all time series of C where A = a1 and B = b1 or b2&lt;br&gt;
-//    * **$filter=A eq ‘a1’
-//            and B eq ‘b1’ or B eq ‘b2’
-//            and C eq ‘*   ’
     private String buildDimensionsFilterQuery(List<LocalizableString> dimensions) {
 //        sanitizeDimensions(dimensions);
         if (checkServiceDimensions(dimensions) == false)
@@ -285,11 +296,6 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
         return resourceId;
     }
 
-    /*
-            else if(namespace.equals(APP_SERVICE))
-            return (List<T>) azure.webApps().listByResourceGroup(resourceGroup);
-     */
-
 
     private MetricValue getLatestTimeSeriesElement(TimeSeriesElement timeSeriesElement) {
         List<MetricValue> datapoints = timeSeriesElement.data();
@@ -314,7 +320,7 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
         return dummy;
     }
 
-    private String fetchValueAsPerAggregatoin(MetricValue latestDataPoint, String aggreagationType) {
+    private String fetchValueAsPerAggregation(MetricValue latestDataPoint, String aggreagationType) {
         switch (aggreagationType) {
             case "AVERAGE":
                 return latestDataPoint.average() != null ? Double.toString(latestDataPoint.average()) : "null";
@@ -339,5 +345,55 @@ public class AzureMetricsCollector<T> extends TaskBuilder {
             return true;
         }
         return false;
+    }
+
+    public static class Builder {
+        private Azure azure;
+        private Service monitoringService;
+        private Account account;
+        private MonitorContextConfiguration monitorContextConfiguration;
+        private Configuration config;
+        private String metricPrefix;
+        private LongAdder requestCounter;
+
+        public Builder withAzure(Azure azure) {
+            this.azure = azure;
+            return this;
+        }
+
+        public Builder withService(Service service) {
+            this.monitoringService = service;
+            return this;
+        }
+
+        public Builder withAccount(Account account) {
+            this.account= account;
+            return this;
+        }
+
+        public Builder withMonitorContextConfiguration(MonitorContextConfiguration monitorContextConfiguration) {
+            this.monitorContextConfiguration = monitorContextConfiguration;
+            return this;
+        }
+
+        public Builder withConfig(Configuration config) {
+            this.config = config;
+            return this;
+        }
+
+        public Builder withRequestCounter(LongAdder requestCounter) {
+            this.requestCounter = requestCounter;
+            return this;
+        }
+
+        public Builder withMetricPrefix(String metricPrefix) {
+            this.metricPrefix = metricPrefix;
+            return this;
+        }
+
+        public AzureMetricsCollector build() {
+            return new AzureMetricsCollector(this);
+        }
+
     }
 }
