@@ -9,6 +9,8 @@
 
 package com.appdynamics.extensions.azure.customnamespace.config;
 
+import com.appdynamics.extensions.controller.ControllerInfo;
+
 import java.util.List;
 
 /**
@@ -19,8 +21,6 @@ public class Configuration {
     private List<Account> accounts;
 
     private String metricPrefix;
-
-    private String service;
 
     private CredentialsDecryptionConfig credentialsDecryptionConfig;
 
@@ -37,6 +37,8 @@ public class Configuration {
     private Connection connection;
 
     private boolean filterStats;
+
+    private ControllerInfo controllerInfo;
 
     public List<Account> getAccounts() {
         return accounts;
@@ -95,14 +97,6 @@ public class Configuration {
         this.numberOfThreads = numberOfThreads;
     }
 
-    public String getService() {
-        return service;
-    }
-
-    public void setService(String service) {
-        this.service = service;
-    }
-
     public MetricsTimeRange getMetricsTimeRange() {
         return metricsTimeRange;
     }
@@ -125,5 +119,13 @@ public class Configuration {
 
     public void setConnection(Connection connection) {
         this.connection = connection;
+    }
+
+    public ControllerInfo getControllerInfo() {
+        return controllerInfo;
+    }
+
+    public void setControllerInfo(ControllerInfo controllerInfo) {
+        this.controllerInfo = controllerInfo;
     }
 }

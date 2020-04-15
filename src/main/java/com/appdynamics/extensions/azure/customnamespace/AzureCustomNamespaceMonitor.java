@@ -58,42 +58,20 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
     @Override
     protected List<Metric> getStatsForUpload(TasksExecutionServiceProvider tasksExecutionServiceProvider, Configuration config) {
         List<Metric> collectedMetrics = Arrays.asList();
-        String service = config.getService();
         try {
             List<Account> accounts = config.getAccounts();
             String metricPrefix = config.getMetricPrefix();
             for (Account account : accounts) {
                 AssertUtils.assertNotNull(monitorContextConfiguration.getMetricsXml(), "Metrics xml not available");
                 AssertUtils.assertNotNull(account, "the account arguments are empty");
-//                preprocessAccount(account, service);
                 AzureCustomNamespaceMonitorTask task = new AzureCustomNamespaceMonitorTask(monitorContextConfiguration, config, tasksExecutionServiceProvider.getMetricWriteHelper(), account, metricPrefix);
                 tasksExecutionServiceProvider.submit("accounts", task);
             }
         } catch (Exception e) {
-            LOGGER.error("Azure CustomNameSpace monitoring extension errored-out while processing the account", e);
+            LOGGER.error("Error in Azure CustomNameSpace monitoring extension, while processing the account", e);
         }
         return collectedMetrics;
     }
-
-//    private void preprocessAccount(Map account, String service){
-//        if(account.get("service") == null || ((String)account.get("service")).replaceAll("\\s", "").equals(""))
-//            account.put("service", service);
-//    }
-    //
-//    //TODO put all the one time tasks/optimizations/cache building/resourceGroup API calls here
-//    @Override
-//    protected void onConfigReload(File file) {
-//        System.out.println();
-//    }
-//    @Override
-//    protected List<Map<String, ?>> getAccounts() {
-//        Map<String, ?> config = monitorContextConfiguration.getConfigYml();
-//        AssertUtils.assertNotNull(config, "The config is not loaded due to previous error");
-//        List<Map<String, ?>> accounts = (List<Map<String, ?>>) config.get("accounts");
-//        AssertUtils.assertNotNull(accounts, "The 'instances' section in config.yml is not initialised");
-//        return accounts;
-//    }
-
 
     protected org.slf4j.Logger getLogger() {
         return LOGGER;

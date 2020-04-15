@@ -35,6 +35,7 @@ object Project : Project({
         password("env.CLIENT_SECRET", "zxx5e1e72372ce8ae8b045878057cb6e2021783647d9f878141600a3b41febff4be67bf471d161bb5a4")
         password("env.SUBSCRIPTION_ID", "zxxadde6fc530cbb116801f2c087b9d7e135888f72eddeecd428d25153eef7bbc3e7bc2fb8e4c4a118f")
         password("env.TENANT_ID", "zxxc2cd637a6b2a6cd9dcd231ce995e8ce8cbb3d383b776cca3d85464ebeb52a0ff22416ab9961de16a")
+        password("env.APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY", "zxx907bb5f174b083cd4f6413203c259a5679287fefe33795f54430a4d0d6b0e47849de9b58c4b8a733")
     }
 
     buildTypesOrder = arrayListOf(

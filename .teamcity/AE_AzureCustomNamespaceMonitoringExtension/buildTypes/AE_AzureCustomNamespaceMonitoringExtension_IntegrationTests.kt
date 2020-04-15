@@ -62,6 +62,10 @@ object AE_AzureCustomNamespaceMonitoringExtension_IntegrationTests : BuildType({
         }
     }
 
+    artifactRules = """
+        /opt/buildAgent/work/machine-agent-logs => target/
+""".trimIndent()
+
     dependencies {
         dependency(AE_AzureCustomNamespaceMonitoringExtension_Build) {
             snapshot {

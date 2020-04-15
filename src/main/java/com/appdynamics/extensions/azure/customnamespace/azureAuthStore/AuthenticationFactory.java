@@ -54,8 +54,7 @@ public class AuthenticationFactory {
 
     public static AuthenticationResult getAccessTokenFromUserCredentials() throws Exception {
         AuthenticationResult result = null;
-        //TODO: check the executor
-        ExecutorService service = Executors.newFixedThreadPool(1);
+        ExecutorService service = Executors.newSingleThreadExecutor();
         try {
             ClientCredential credential = new ClientCredential(client, secret);
             AuthenticationContext context = new AuthenticationContext(AUTHORITY + tenant, false, service);

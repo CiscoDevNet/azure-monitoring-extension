@@ -73,9 +73,9 @@ public class AzureApiVersionStore {
                 reader.close();
                 versionsMap = mapper.readValue(line, Map.class);
             }else
-                LOGGER.info("{} file doesn't exist, startting with empty versionsMap", RESOURCE_VERSION_PATH);
+                LOGGER.info("{} file doesn't exist, starting with empty versionsMap", RESOURCE_VERSION_PATH);
         } catch (Exception e) {
-            LOGGER.error("Error while reading the file resouce-version.json file", e);
+            LOGGER.error("Error while reading the file resource-version.json file", e);
         }
     }
 

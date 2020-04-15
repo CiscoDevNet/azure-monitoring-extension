@@ -4,6 +4,7 @@ import AE_AzureCustomNamespaceMonitoringExtension.publishCommitStatus
 import AE_AzureCustomNamespaceMonitoringExtension.vcsRoots.AE_AzureCustomNamespaceMonitoringExtension
 import AE_AzureCustomNamespaceMonitoringExtension.withDefaults
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.exec
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.maven
 import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.vcs
 

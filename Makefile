@@ -1,9 +1,6 @@
-dockerRun:
-	@echo starting container ##################%%%%%%%%%%%%%%%%%%%&&&&&&&&&&&&&&&&&&&&&&
-	## start controller
-	docker-compose --file docker-compose.yml up --force-recreate -d --build controller
+dockerRun: startController
 	## wait until it installs controller and ES
-	sleep 600
+	## sleep 600
 	## bash into the controller controller, change props to enable port 9200
 	## docker exec controller /bin/bash -c "sed -i s/ad.es.node.http.enabled=false/ad.es.node.http.enabled=true/g events-service/processor/conf/events-service-api-store.properties"
 	## restart ES to make the changes reflect
@@ -14,6 +11,11 @@ dockerRun:
 	docker-compose --file docker-compose.yml up --force-recreate -d --build machine
 	@echo started container ##################%%%%%%%%%%%%%%%%%%%&&&&&&&&&&&&&&&&&&&&&&
 
+startController:
+	@echo starting container ##################%%%%%%%%%%%%%%%%%%%&&&&&&&&&&&&&&&&&&&&&&
+	## start controller
+	docker-compose --file docker-compose.yml up --force-recreate -d --build controller
+
 dockerStop:
 	## stop and remove all containers
 	sleep 60
@@ -21,7 +23,7 @@ dockerStop:
 	## docker stop machine controller
 	## docker rm machine controller
 	docker-compose down --rmi all -v --remove-orphans
-	docker rmi dtr.corp.appdynamics.com/appdynamics/machine-agent:latest
+	docker rmi dtr.corp.appdynamics.com/appdynamics/machine-agent:4.5.18.2430
 	docker rmi alpine
 	@echo remove containers and images
 	## always remove all unused networks, will cause a leak otherwise. use --force when running on TC
