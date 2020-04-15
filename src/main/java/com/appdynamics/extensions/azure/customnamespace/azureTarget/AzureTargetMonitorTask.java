@@ -1,6 +1,15 @@
-package com.appdynamics.extensions.azure.customnamespace;
+/*
+ *
+ *  * Copyright 2018. AppDynamics LLC and its affiliates.
+ *  * All Rights Reserved.
+ *  * This is unpublished proprietary source code of AppDynamics LLC and its affiliates.
+ *  * The copyright notice above does not evidence any actual or intended publication of such source code.
+ *
+ */
 
-import com.appdynamics.extensions.azure.customnamespace.config.Connection;
+package com.appdynamics.extensions.azure.customnamespace.azureTarget;
+
+import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
 import com.appdynamics.extensions.azure.customnamespace.config.MetricConfig;
 import com.appdynamics.extensions.azure.customnamespace.config.Target;
 import com.appdynamics.extensions.azure.customnamespace.utils.AzureApiVersionStore;
@@ -16,11 +25,9 @@ import com.appdynamics.extensions.executorservice.MonitorExecutorService;
 import com.appdynamics.extensions.executorservice.MonitorThreadPoolExecutor;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.microsoft.aad.adal4j.AuthenticationResult;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -31,39 +38,34 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.atomic.LongAdder;
 
-/*
- Copyright 2019. AppDynamics LLC and its affiliates.
- All Rights Reserved.
- This is unpublished proprietary source code of AppDynamics LLC and its affiliates.
- The copyright notice above does not evidence any actual or intended publication of such source code.
-*/
 public class AzureTargetMonitorTask implements Callable {
     Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureTargetMonitorTask.class);
-    private Target server;
+    private Target target;
     private AuthenticationResult authTokenResult;
-    private Connection connection;
-    private String metricPrefix;
+    private Configuration configuration;
     private String subscriptionId;
-    private String SLASH = "/";
-    private String RESOURCE_API_VERSION = "2019-01-01"; //Default api version
+    private String metricPrefix;
+    private LongAdder requestCounter;
 
     private List<MetricConfig> metricConfigs;
     private Map<String, List<MetricConfig>> timeSpanMappedMetricConfig = Maps.newHashMap();
+    private String SLASH = "/";
+    private String RESOURCE_API_VERSION = "2019-01-01"; //Default api version
 
-    public AzureTargetMonitorTask(Target server, Connection connection, AuthenticationResult authTokenResult, String metricPrefix, String subscriptionId) {
-        this.server = server;
-        this.authTokenResult = authTokenResult;
-        this.metricPrefix = metricPrefix;
-        this.subscriptionId = subscriptionId;
-        this.connection = connection;
+    public AzureTargetMonitorTask(Builder builder) {
+        this.target = builder.target;
+        this.authTokenResult = builder.authTokenResult;
+        this.configuration = builder.configuration;
+        this.subscriptionId = builder.subscriptionId;
+        this.metricPrefix = builder.metricPrefix;
+        this.requestCounter = builder.requestCounter;
     }
 
     @Override
@@ -71,39 +73,25 @@ public class AzureTargetMonitorTask implements Callable {
         List<Metric> metrics = Lists.newArrayList();
         try {
             metrics = targetMetricCollector();
-        } catch (IOException IOe) {
-            LOGGER.error("I/O exception occured while collecting server metrics", IOe);
         } catch (Exception e) {
             LOGGER.error("Error while collecting server metrics");
         }
         return metrics;
     }
 
-    private List<Metric> targetMetricCollector() throws IOException {
+    private List<Metric> targetMetricCollector() {
         List<Metric> metrics = Lists.newArrayList();
-//        https://www.baeldung.com/httpclient-connection-management#eviction
-//        https://www.baeldung.com/httpclient-custom-http-header
-
-//        CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(new PoolingHttpClientConnectionManager()).build();
         HttpClientModule httpClientModule = new HttpClientModule();
-        ObjectMapper mapper = new ObjectMapper();
-        Map<String, String> connectionMap = mapper.convertValue(connection, Map.class);
-        Map<String, String> server1 = mapper.convertValue(server, Map.class);
-        List<Map<String, String>> serversList = Lists.newArrayList();
 
-        serversList.add(server1);
-        Map<String, Object> config = Maps.newHashMap();
-        config.put("servers", serversList);
-        config.put("connection", connectionMap);
-
+        Map<String, List<Map<String, String>>> config = TargetUtils.httpClientConfigTransformer(configuration, target);
         httpClientModule.initHttpClient(config);
         CloseableHttpClient httpClient = httpClientModule.getHttpClient();
-        String resource = server.getResource();
+        String resource = target.getResource();
         String[] resourceSubstrings = resource.split(SLASH);
         List<String> matchedResourceGroupNames = queryAndMatchConfiguredResourceGroups(resourceSubstrings, httpClient);
         for (String resourceGroup : matchedResourceGroupNames) {
             List<String> matchedResourceNames = queryAndMatchConfiguredResources(resourceGroup, resourceSubstrings, httpClient);
-            initTargetMetricsCollection((server.getResource()).replace("<MY-RESOURCE-GROUP>", resourceGroup), matchedResourceNames, metrics, httpClient);
+            initTargetMetricsCollection((target.getResource()).replace("<MY-RESOURCE-GROUP>", resourceGroup), matchedResourceNames, metrics, httpClient);
         }
         return metrics;
     }
@@ -111,7 +99,7 @@ public class AzureTargetMonitorTask implements Callable {
     private List<String> queryAndMatchConfiguredResourceGroups(String[] resourceSubstrings, HttpClient httpClient) {
         List<String> resourceGroups = Lists.newArrayList();
         List<String> queriedResourceGroupNames = Lists.newArrayList();
-        resourceGroups.addAll(server.getResourceGroups());
+        resourceGroups.addAll(target.getResourceGroups());
         try {
             if (!resourceSubstrings[2].equals("<MY-RESOURCE-GROUP>"))
                 resourceGroups.add(resourceSubstrings[2]);
@@ -120,6 +108,7 @@ public class AzureTargetMonitorTask implements Callable {
             request.addHeader(AUTHORIZATION, BEARER + authTokenResult.getAccessToken());
             HttpResponse response = httpClient.execute(request);
             String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
+            requestCounter.increment();
             JSONArray jsonResourcesArray = new JSONObject(responseBody).getJSONArray("value");
             for (int i = 0; i < jsonResourcesArray.length(); i++) {
                 JSONObject jsonResource = jsonResourcesArray.getJSONObject(i);
@@ -128,7 +117,7 @@ public class AzureTargetMonitorTask implements Callable {
         } catch (Exception e) {
             LOGGER.error("Error while collecting the resourceGroups", e);
         }
-        return filterConfiguredResourceNames(queriedResourceGroupNames, resourceGroups);
+        return TargetUtils.filterConfiguredResourceNames(queriedResourceGroupNames, resourceGroups);
     }
 
     private List<String> queryAndMatchConfiguredResources(String resourceGroup, String[] resourceSubstrings, HttpClient httpClient) {
@@ -145,6 +134,7 @@ public class AzureTargetMonitorTask implements Callable {
             HttpResponse response1 = httpClient.execute(request);
             responseBody = EntityUtils.toString(response1.getEntity(), "UTF-8");
             JSONArray jsonResourcesArray = new JSONObject(responseBody).getJSONArray("value");
+            requestCounter.increment();
             for (int i = 0; i < jsonResourcesArray.length(); i++) {
                 JSONObject jsonResource = jsonResourcesArray.getJSONObject(i);
                 resourceNames.add(jsonResource.getString("name"));
@@ -153,23 +143,30 @@ public class AzureTargetMonitorTask implements Callable {
             LOGGER.error("Error while collecting metrics from the resource", e);
 
         }
-        return filterConfiguredResourceNames(resourceNames, server.getServiceInstances());
+        return TargetUtils.filterConfiguredResourceNames(resourceNames, target.getServiceInstances());
     }
 
     private void initTargetMetricsCollection(String resourceUrl, List<String> resourceNames, List<Metric> metrics, HttpClient client) {
         for (String resourceName : resourceNames) {
             try {
-                //TODO: put a check that if the resourceNames are configured then it should have the <MY-RESOURCE> in the resource string.
                 resourceUrl = resourceUrl.replace("<MY-RESOURCE>", resourceName);
                 String url = Constants.AZURE_MANAGEMENT + SUBSCRIPTION + SLASH + subscriptionId + resourceUrl + API_VERSION;
-                metricConfigs = server.getMetrics();
+                metricConfigs = target.getMetrics();
                 metricConfigsProcessor(client, url);
                 MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(timeSpanMappedMetricConfig.size()));
                 List<FutureTask<List<Metric>>> futureTasks = Lists.newArrayList();
                 for (Map.Entry<String, List<MetricConfig>> entry : timeSpanMappedMetricConfig.entrySet()) {
                     try {
-
-                        TimegrainTargetCollectorTask targetTask = new TimegrainTargetCollectorTask(entry, client, url, resourceName, authTokenResult, server, metricPrefix);
+                        TimegrainTargetCollectorTask targetTask = new TimegrainTargetCollectorTask.Builder()
+                                        .withTarget(target)
+                                        .withAuthenticationResult(authTokenResult)
+                                        .withClient(client)
+                                        .withUrl(url)
+                                        .withGrainEntry(entry)
+                                        .withResourceName(resourceName)
+                                        .withMetricPrefix(metricPrefix)
+                                        .withRequestCounter(requestCounter)
+                                        .build();
                         FutureTask<List<Metric>> targetExecutorTask = new FutureTask(targetTask);
                         executorService.submit("TimegrainTargetCollectorTask", targetExecutorTask);
                         futureTasks.add(targetExecutorTask);
@@ -185,9 +182,7 @@ public class AzureTargetMonitorTask implements Callable {
     }
 
     private void metricConfigsProcessor(HttpClient httpClient, String url) throws IOException {
-        //If condition handles the case when no metrics are configured and will fetch all the available metrics
-//        {"code":"BadRequest","message":"Requested metrics count: 59 bigger than allowed max: 20"}
-        //Truncating to <= 20
+        //Truncating to <= 20 as per error {"code":"BadRequest","message":"Requested metrics count: 59 bigger than allowed max: 20"}
         int count = 0;
         List<MetricConfig> actualMetricConfigs = getActualMetrics(httpClient, url);
 
@@ -204,7 +199,7 @@ public class AzureTargetMonitorTask implements Callable {
         }
         List<MetricConfig> filteredConfigs = Lists.newArrayList();
         for (MetricConfig metricStat : metricConfigs) {
-            Boolean isValidMetricConfig = matchedAndModifiedAttr(metricStat, actualMetricConfigs);
+            Boolean isValidMetricConfig = TargetUtils.matchedAndModifiedAttr(metricStat, actualMetricConfigs);
             if (isValidMetricConfig != false)
                 updateTimespanMap(metricStat);
             filteredConfigs.add(metricStat);
@@ -223,7 +218,6 @@ public class AzureTargetMonitorTask implements Callable {
         }
     }
 
-
     //get actual metrics from metric definition
     private List<MetricConfig> getActualMetrics(HttpClient httpClient, String url) throws IOException {
         List<MetricConfig> actualMetricConfigs = Lists.newArrayList();
@@ -233,46 +227,51 @@ public class AzureTargetMonitorTask implements Callable {
         HttpResponse response = httpClient.execute(request);
         String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
         JSONObject jsonObject = new JSONObject(responseBody);
-        scanJsonResponseforMetrics(jsonObject, actualMetricConfigs);
+        TargetUtils.scanJsonResponseforMetricConfigs(jsonObject, actualMetricConfigs);
         return actualMetricConfigs;
     }
 
-    private void scanJsonResponseforMetrics(JSONObject jsonObject, List<MetricConfig> actualMetricConfigs) {
-//jsonObject.getJSONArray("value").get(0).get("name").get("value")
-        //TODO: check for the NPE and important attributes for use
-        JSONArray metricDefinitions = jsonObject.getJSONArray("value");
-        for (int i = 0; i < metricDefinitions.length(); i++) {
-            MetricConfig newConfig = new MetricConfig();
-            String name = ((JSONObject) ((JSONObject) metricDefinitions.get(i)).get("name")).getString("value");
-            newConfig.setAttr(name);
-            newConfig.setAlias(name);
-            newConfig.setAggregationType(((JSONObject) metricDefinitions.get(i)).getString("primaryAggregationType"));
-            String timespan = ((JSONObject) ((JSONArray) (((JSONObject) metricDefinitions.get(i)).get("metricAvailabilities"))).get(0)).getString("timeGrain");
-            newConfig.setTimeSpan(timespan);
-            actualMetricConfigs.add(newConfig);
+    public static class Builder {
+        private Target target;
+        private AuthenticationResult authTokenResult;
+        private Configuration configuration;
+        private String subscriptionId;
+        private String metricPrefix;
+        private LongAdder requestCounter;
+
+        public Builder withTarget(Target target) {
+            this.target = target;
+            return this;
         }
-    }
 
-    private List<String> filterConfiguredResourceNames(List<String> resourceNames, List<String> targetResourceNames) {
-        List<String> matchedResourceNames = Lists.newArrayList();
-        for (String resourceName : resourceNames)
-            if (CommonUtilities.checkStringPatternMatch(resourceName, targetResourceNames))
-                matchedResourceNames.add(resourceName);
-
-        return matchedResourceNames;
-    }
-
-    private Boolean matchedAndModifiedAttr(MetricConfig metricStat, List<MetricConfig> actualMetricConfigs) {
-        String attr = metricStat.getAttr().toLowerCase();
-        for (MetricConfig currMetricConfig : actualMetricConfigs) {
-            if (currMetricConfig.getAttr().toLowerCase().equals(attr)) {
-                metricStat.setTimeSpan(currMetricConfig.getTimeSpan());
-                if(metricStat.getAggregationType() != null || metricStat.getAggregationType() != "")
-                    metricStat.setAggregationType(currMetricConfig.getAggregationType());
-                return true;
-            }
+        public Builder withAuthenticationResult(AuthenticationResult authTokenResult) {
+            this.authTokenResult = authTokenResult;
+            return this;
         }
-        return false;
+
+        public Builder withConfiguration(Configuration configuration) {
+            this.configuration = configuration;
+            return this;
+        }
+
+        public Builder withSubscriptionId(String subscriptionId ) {
+            this.subscriptionId = subscriptionId ;
+            return this;
+        }
+
+        public Builder withMetricPrefix(String metricPrefix) {
+            this.metricPrefix = metricPrefix;
+            return this;
+        }
+
+        public Builder withRequestCounter(LongAdder requestCounter) {
+            this.requestCounter = requestCounter;
+            return this;
+        }
+
+        public AzureTargetMonitorTask build() {
+            return new AzureTargetMonitorTask(this);
+        }
     }
 
 }

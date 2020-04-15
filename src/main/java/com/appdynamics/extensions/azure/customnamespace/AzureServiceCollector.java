@@ -1,8 +1,6 @@
 package com.appdynamics.extensions.azure.customnamespace;
 
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons.AzureResourceGroupCollector;
-import com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons.TaskBuilder;
 import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
 import com.appdynamics.extensions.azure.customnamespace.config.Service;
@@ -18,6 +16,7 @@ import com.microsoft.azure.management.resources.ResourceGroup;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.LongAdder;
@@ -28,15 +27,25 @@ import java.util.concurrent.atomic.LongAdder;
  This is unpublished proprietary source code of AppDynamics LLC and its affiliates.
  The copyright notice above does not evidence any actual or intended publication of such source code.
 */
-public class AzureServiceCollector extends TaskBuilder {
+public class AzureServiceCollector implements Callable<List<Metric>> {
     Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureServiceCollector.class);
-    public Service service;
-    public LongAdder requestCounter;
+    private Azure azure;
+    private Service service;
+    private Account account;
+    private MonitorContextConfiguration monitorContextConfiguration;
+    private Configuration config;
+    private LongAdder requestCounter;
+    private String metricPrefix;
 
-    public AzureServiceCollector(Azure azure, Account account, MonitorContextConfiguration monitorContextConfiguration, Configuration config, MetricWriteHelper metricWriteHelper, Service service, String metricPrefix,LongAdder requestCounter) {
-        super(azure, account, monitorContextConfiguration, config, metricWriteHelper, metricPrefix, requestCounter);
-        this.service = service;
-        this.requestCounter = requestCounter;
+
+    public AzureServiceCollector(Builder builder) {
+        this.azure = builder.azure;
+        this.service = builder.service;
+        this.account = builder.account;
+        this.monitorContextConfiguration = builder.monitorContextConfiguration;
+        this.config = builder.config;
+        this.requestCounter = builder.requestCounter;
+        this.metricPrefix = builder.metricPrefix;
     }
 
     @Override
@@ -65,7 +74,16 @@ public class AzureServiceCollector extends TaskBuilder {
             LOGGER.debug("Filtered resourceGroups are {}", filteredResourceGroups);
             for (ResourceGroup resourceGroup : filteredResourceGroups) {
                 try {
-                    AzureResourceGroupCollector accountTask = new AzureResourceGroupCollector(azure, account, service, monitorContextConfiguration, config, metricWriteHelper, resourceGroup.name(), metricPrefix, requestCounter);
+                    AzureResourceGroupCollector accountTask = new AzureResourceGroupCollector.Builder()
+                            .withAzure(azure)
+                            .withService(service)
+                            .withAccount(account)
+                            .withMonitorContextConfiguration(monitorContextConfiguration)
+                            .withConfig(config)
+                            .withResourceGroup(resourceGroup.name())
+                            .withMetricPrefix(metricPrefix)
+                            .withRequestCounter(requestCounter)
+                            .build();
                     FutureTask<List<Metric>> accountExecutorTask = new FutureTask(accountTask);
                     executorService.submit("AzureServiceCollector", accountExecutorTask);
                     futureTasks.add(accountExecutorTask);
@@ -89,5 +107,54 @@ public class AzureServiceCollector extends TaskBuilder {
                 LOGGER.debug("No match for resourceGroup {}, Excluding it", resourceGroup.name());
         }
         return filteredResourceGroup;
+    }
+
+    public static class Builder {
+        private Azure azure;
+        private Service service;
+        private Account account;
+        private MonitorContextConfiguration monitorContextConfiguration;
+        private Configuration config;
+        private String metricPrefix;
+        private LongAdder requestCounter;
+
+        public Builder withAzure(Azure azure) {
+            this.azure = azure;
+            return this;
+        }
+
+        public Builder withService(Service service) {
+            this.service = service;
+            return this;
+        }
+
+        public Builder withAccount(Account account) {
+            this.account = account;
+            return this;
+        }
+
+        public Builder withMonitorContextConfiguration(MonitorContextConfiguration monitorContextConfiguration) {
+            this.monitorContextConfiguration = monitorContextConfiguration;
+            return this;
+        }
+
+        public Builder withConfig(Configuration config) {
+            this.config = config;
+            return this;
+        }
+
+        public Builder withMetricPrefix(String metricPrefix) {
+            this.metricPrefix = metricPrefix;
+            return this;
+        }
+
+        public Builder withRequestCounter(LongAdder requestCounter) {
+            this.requestCounter = requestCounter;
+            return this;
+        }
+
+        public AzureServiceCollector build() {
+            return new AzureServiceCollector(this);
+        }
     }
 }
