@@ -42,9 +42,10 @@ public class MetricCheckIT {
     public void testAPICallsMetric() {
         JsonNode jsonNode = null;
         if (metricAPIService != null) {
-            jsonNode = metricAPIService.getMetricData("",
-                    "Server%20&%20Infrastructure%20Monitoring/metric-data?metric-path=Application%20Infrastructure%20Performance%7CRoot%7CCustom%20Metrics%7CAzure%7CMetrics%20Uploaded&time-range-type=BEFORE_NOW&duration-in-mins=60000&output=JSON");
+            logger.debug("metrricApiService", metricAPIService.toString());
+            jsonNode = metricAPIService.getMetricData("","Server%20&%20Infrastructure%20Monitoring/metric-data?metric-path=Application%20Infrastructure%20Performance%7CRoot%7CCustom%20Metrics%7CAzure%7CMetrics%20Uploaded&time-range-type=BEFORE_NOW&duration-in-mins=15&output=JSON");
         }
+        logger.debug("Ouput from getMetricData", jsonNode.toString());
         Assert.assertNotNull("Cannot connect to controller API", jsonNode);
         JsonNode valueNode = JsonUtils.getNestedObject(jsonNode, "*", "metricId");
         Assert.assertTrue("Azure Metrics Uploaded", valueNode.get(0).asInt() > 0);
