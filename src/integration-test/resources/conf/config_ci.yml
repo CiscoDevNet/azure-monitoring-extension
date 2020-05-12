@@ -60,11 +60,11 @@ numberOfThreads: 5
 filterStats: false # flag to use metrics.xml.
 
 controllerInfo:
-    controllerHost: "${APPDYNAMICS_CONTROLLER_HOST_NAME}"
+    controllerHost: "controller"
     controllerPort: 8080
     account: "customer1"
-    username: "admin"
-    password: "admin"
+    username: "user1"
+    password: "welcome"
     encryptedPassword: ""
     controllerSslEnabled: false
     enableOrchestration: false
