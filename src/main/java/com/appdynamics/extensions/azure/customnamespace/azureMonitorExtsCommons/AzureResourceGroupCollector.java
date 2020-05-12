@@ -71,19 +71,19 @@ public class AzureResourceGroupCollector<T> implements Callable<List<Metric>> {
         for (T serviceQueried : servicesList) {
             try {
                 LOGGER.debug("starting AzureMetricCollector task for {}", resourceGroup);
-                AzureMetricsCollector<T> accountTask = new AzureMetricsCollector.Builder()
-                            .withAzure(azure)
-                            .withService(service)
-                            .withAccount(account)
-                            .withMonitorContextConfiguration(monitorContextConfiguration)
-                            .withConfig(config)
-                            .withMetricPrefix(metricPrefix)
-                            .withRequestCounter(requestCounter)
-                            .build();
-                accountTask.setService(serviceQueried);
-                FutureTask<List<Metric>> accountExecutorTask = new FutureTask(accountTask);
-                executorService.submit("AzureResourceGroupCollector", accountExecutorTask);
-                tasks.add(accountExecutorTask);
+                AzureMetricsCollector<T> metricsCollectorTask = new AzureMetricsCollector.Builder()
+                                                                                .withAzure(azure)
+                                                                                .withService(service)
+                                                                                .withAccount(account)
+                                                                                .withMonitorContextConfiguration(monitorContextConfiguration)
+                                                                                .withConfig(config)
+                                                                                .withMetricPrefix(metricPrefix)
+                                                                                .withRequestCounter(requestCounter)
+                                                                                .build();
+                metricsCollectorTask.setService(serviceQueried);
+                FutureTask<List<Metric>> metricsCollectorExecutorTask = new FutureTask(metricsCollectorTask);
+                executorService.submit("AzureResourceGroupCollector", metricsCollectorExecutorTask);
+                tasks.add(metricsCollectorExecutorTask);
             } catch (Exception e) {
                 LOGGER.error("Exception while collecting metrics for resourceGroup {}, service {}, accountName {}", resourceGroup, service, account.getDisplayName(), e);
             }

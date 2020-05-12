@@ -3,6 +3,7 @@ package com.appdynamics.extensions.azure.customnamespace;
 import com.appdynamics.extensions.AMonitorTaskRunnable;
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.azure.customnamespace.azureAuthStore.AuthenticationFactory;
+import com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons.AzureServiceCollector;
 import com.appdynamics.extensions.azure.customnamespace.azureTarget.AzureTargetMonitorTask;
 import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
@@ -21,7 +22,6 @@ import com.microsoft.azure.management.Azure;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -41,7 +41,6 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
     private MetricWriteHelper metricWriteHelper;
     private Account account;
     private Azure azure;
-    private BigInteger heartBeat = BigInteger.valueOf(0);
     private AuthenticationResult authTokenResult;
     private LongAdder azureRequestCounter = new LongAdder();
 
@@ -82,12 +81,9 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
             List<Target> resourceTargets = account.getTargets();
             if (resourceTargets != null)
                 metrics.addAll(initTargetMetricsCollection(resourceTargets));
-            heartBeat = BigInteger.valueOf(1);
         } catch (Exception e) {
             LOGGER.error("Error while collecting stats for Account {}", account.getDisplayName(), e);
         } finally {
-            Metric heartbeat = new Metric("Heartbeat", String.valueOf(heartBeat), metricPrefix + "Heartbeat");
-            metrics.add(heartbeat);
             Metric apiCallsMetric = new Metric("Azure API Calls", Double.toString(this.azureRequestCounter.doubleValue()), metricPrefix + "Azure API Calls");
             metrics.add(apiCallsMetric);
             metricWriteHelper.transformAndPrintMetrics(metrics);
@@ -110,9 +106,9 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
                             .withMetricPrefix(metricPrefix)
                             .withRequestCounter(azureRequestCounter)
                             .build();
-                    FutureTask<List<Metric>> accountExecutorTask = new FutureTask(serviceCollectorTask);
-                    executorService.submit("AzureCustomNamespaceMonitorTask", accountExecutorTask);
-                    futureTasks.add(accountExecutorTask);
+                    FutureTask<List<Metric>> serviceExecutorTask = new FutureTask(serviceCollectorTask);
+                    executorService.submit("AzureCustomNamespaceMonitorTask", serviceExecutorTask);
+                    futureTasks.add(serviceExecutorTask);
                 } catch (Exception e) {
                     LOGGER.error("Error while collecting metrics for resourceGroup {}", service.getServiceName(), e);
                 }

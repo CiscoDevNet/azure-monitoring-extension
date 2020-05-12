@@ -35,6 +35,10 @@ public class AzureApiVersionStore {
     private static String DATE_REGEX = "(20\\d\\d-\\d\\d-\\d\\d)"; // To match the Azure api date formats
     private static Boolean updateVersionMap = false;
 
+    static {
+        readVersionMapFromFile();
+    }
+
     public static void writeVersionMapToFile() {
         if (updateVersionMap.equals(false))
             return;
@@ -69,10 +73,10 @@ public class AzureApiVersionStore {
                 while ((line = bufferedReader.readLine()) != null) {
                     stringBuffer.append(line);
                     stringBuffer.append("\n");
+                    versionsMap = mapper.readValue(line, Map.class);
                 }
                 reader.close();
-                versionsMap = mapper.readValue(line, Map.class);
-            }else
+            } else
                 LOGGER.info("{} file doesn't exist, starting with empty versionsMap", RESOURCE_VERSION_PATH);
         } catch (Exception e) {
             LOGGER.error("Error while reading the file resource-version.json file", e);
