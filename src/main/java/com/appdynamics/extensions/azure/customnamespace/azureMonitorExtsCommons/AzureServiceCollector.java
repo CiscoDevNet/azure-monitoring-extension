@@ -1,6 +1,14 @@
-package com.appdynamics.extensions.azure.customnamespace;
+/*
+ *
+ *  * Copyright 2018. AppDynamics LLC and its affiliates.
+ *  * All Rights Reserved.
+ *  * This is unpublished proprietary source code of AppDynamics LLC and its affiliates.
+ *  * The copyright notice above does not evidence any actual or intended publication of such source code.
+ *
+ */
 
-import com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons.AzureResourceGroupCollector;
+package com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons;
+
 import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.Configuration;
 import com.appdynamics.extensions.azure.customnamespace.config.Service;
@@ -21,12 +29,6 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.LongAdder;
 
-/*
- Copyright 2019. AppDynamics LLC and its affiliates.
- All Rights Reserved.
- This is unpublished proprietary source code of AppDynamics LLC and its affiliates.
- The copyright notice above does not evidence any actual or intended publication of such source code.
-*/
 public class AzureServiceCollector implements Callable<List<Metric>> {
     Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureServiceCollector.class);
     private Azure azure;
@@ -74,7 +76,7 @@ public class AzureServiceCollector implements Callable<List<Metric>> {
             LOGGER.debug("Filtered resourceGroups are {}", filteredResourceGroups);
             for (ResourceGroup resourceGroup : filteredResourceGroups) {
                 try {
-                    AzureResourceGroupCollector accountTask = new AzureResourceGroupCollector.Builder()
+                    AzureResourceGroupCollector resourceGroupTask = new AzureResourceGroupCollector.Builder()
                             .withAzure(azure)
                             .withService(service)
                             .withAccount(account)
@@ -84,9 +86,9 @@ public class AzureServiceCollector implements Callable<List<Metric>> {
                             .withMetricPrefix(metricPrefix)
                             .withRequestCounter(requestCounter)
                             .build();
-                    FutureTask<List<Metric>> accountExecutorTask = new FutureTask(accountTask);
-                    executorService.submit("AzureServiceCollector", accountExecutorTask);
-                    futureTasks.add(accountExecutorTask);
+                    FutureTask<List<Metric>> resourceGroupExecutorTask = new FutureTask(resourceGroupTask);
+                    executorService.submit("AzureServiceCollector", resourceGroupExecutorTask);
+                    futureTasks.add(resourceGroupExecutorTask);
                 } catch (Exception e) {
                     LOGGER.error("Error while collecting metrics for resourceGroup {}", resourceGroup.name(), e);
                 }
