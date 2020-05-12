@@ -61,7 +61,7 @@ filterStats: false # flag to use metrics.xml.
 
 controllerInfo:
     controllerHost: "${APPDYNAMICS_CONTROLLER_HOST_NAME}"
-    controllerPort: 8090
+    controllerPort: 8080
     account: "customer1"
     username: "admin"
     password: "admin"
