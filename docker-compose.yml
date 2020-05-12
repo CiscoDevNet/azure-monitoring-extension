@@ -16,7 +16,7 @@ services:
      - APPDYNAMICS_CONTROLLER_HOST_NAME=controller
      - APPDYNAMICS_CONTROLLER_SSL_ENABLED=false
      - APPDYNAMICS_CONTROLLER_PORT=8080
-     - MACHINE_AGENT_PROPERTIES=-Dappdynamics.agent.uniqueHostId=azureTest1 -Dappdynamics.sim.enabled=true -Dappdynamics.docker.enabled=false
+     - MACHINE_AGENT_PROPERTIES=-Dappdynamics.agent.uniqueHostId=azureTest1 -Dappdynamics.sim.enabled=true -Dappdynamics.docker.enabled=false -Dappdynamics.controller.port=8080
     build:
       context: .
       dockerfile: Dockerfile

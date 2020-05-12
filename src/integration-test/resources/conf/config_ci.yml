@@ -60,17 +60,16 @@ numberOfThreads: 5
 filterStats: false # flag to use metrics.xml.
 
 controllerInfo:
-    controllerHost: "localhost"
+    controllerHost: "${APPDYNAMICS_CONTROLLER_HOST_NAME}"
     controllerPort: 8090
     account: "customer1"
     username: "admin"
     password: "admin"
     encryptedPassword: ""
-    encryptionKey: ""
     controllerSslEnabled: false
     enableOrchestration: false
     uniqueHostId: ""
-    accountAccessKey: "c71836c2-5128-4545-9ef5-c6dfc6a69952"
+    accountAccessKey: "SJ5b2m7d1$$354"
     machinePath: ""
     simEnabled: true
     applicationName: ""

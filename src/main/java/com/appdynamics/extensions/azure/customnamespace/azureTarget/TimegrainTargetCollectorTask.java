@@ -32,7 +32,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.LongAdder;
 
 public class TimegrainTargetCollectorTask implements Callable {
-    Logger LOGGER = ExtensionsLoggerFactory.getLogger(TimegrainTargetCollectorTask.class);
+    private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger(TimegrainTargetCollectorTask.class);
 
     private Target target;
     private AuthenticationResult authTokenResult;

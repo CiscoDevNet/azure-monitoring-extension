@@ -25,7 +25,7 @@ import java.util.Map;
  The copyright notice above does not evidence any actual or intended publication of such source code.
 */
 public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
-    private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger("AzureCustomNamespaceMonitor.class");
+    private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureCustomNamespaceMonitor.class);
     private static final String DEFAULT_METRIC_PREFIX = String.format("%s%s%s%s", "Custom Metrics", METRIC_PATH_SEPARATOR, "Azure CustomNameSpace", METRIC_PATH_SEPARATOR);
     private MonitorContextConfiguration monitorContextConfiguration;
 

@@ -46,7 +46,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.LongAdder;
 
 public class AzureTargetMonitorTask implements Callable {
-    Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureTargetMonitorTask.class);
+    private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureTargetMonitorTask.class);
     private Target target;
     private AuthenticationResult authTokenResult;
     private Configuration configuration;
