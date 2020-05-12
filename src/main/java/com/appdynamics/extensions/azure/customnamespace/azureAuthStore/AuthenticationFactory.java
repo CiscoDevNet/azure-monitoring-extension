@@ -2,6 +2,9 @@ package com.appdynamics.extensions.azure.customnamespace.azureAuthStore;
 
 import com.appdynamics.extensions.azure.customnamespace.config.Credentials;
 import com.appdynamics.extensions.azure.customnamespace.utils.Constants;
+import com.appdynamics.extensions.util.CryptoUtils;
+import com.appdynamics.extensions.util.StringUtils;
+import com.google.common.collect.Maps;
 import com.microsoft.aad.adal4j.AuthenticationContext;
 import com.microsoft.aad.adal4j.AuthenticationResult;
 import com.microsoft.aad.adal4j.ClientCredential;
@@ -13,6 +16,7 @@ import com.microsoft.azure.management.Azure;
 import javax.naming.ServiceUnavailableException;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -34,12 +38,17 @@ public class AuthenticationFactory {
     public static String certAuthFilePath;
     private static final String AUTHORITY = Constants.AUTHORITY;
 
-    public static Azure getAzure(Credentials accountCreds) throws IOException {
+    public static Azure getAzure(Credentials accountCreds, String encryptionKey) throws IOException {
 
+        subscriptionId = accountCreds.getSubscriptionId();
         client = accountCreds.getClient();
         tenant = accountCreds.getTenant();
         secret = accountCreds.getSecret();
-        subscriptionId = accountCreds.getSubscriptionId();
+        if(StringUtils.hasText(encryptionKey)){
+            tenant = getDecryptedPassword(tenant, encryptionKey);
+            secret = getDecryptedPassword(secret, encryptionKey);
+        }
+
         certAuthFilePath = accountCreds.getCertAuthFilePath();
 
         if (secret != null || !secret.equals("")) {
@@ -52,7 +61,7 @@ public class AuthenticationFactory {
 
     }
 
-    public static AuthenticationResult getAccessTokenFromUserCredentials() throws Exception {
+    public synchronized static AuthenticationResult getAccessTokenFromUserCredentials() throws Exception {
         AuthenticationResult result = null;
         ExecutorService service = Executors.newSingleThreadExecutor();
         try {
@@ -68,5 +77,14 @@ public class AuthenticationFactory {
         }
         return result;
     }
+
+
+    public static String getDecryptedPassword(String encryptedPassword, String encryptionKey) {
+        Map<String, String> cryptoMap = Maps.newHashMap();
+        cryptoMap.put(com.appdynamics.extensions.Constants.ENCRYPTED_PASSWORD, encryptedPassword);
+        cryptoMap.put(com.appdynamics.extensions.Constants.ENCRYPTION_KEY, encryptionKey);
+        return CryptoUtils.getPassword(cryptoMap);
+    }
+
 
 }

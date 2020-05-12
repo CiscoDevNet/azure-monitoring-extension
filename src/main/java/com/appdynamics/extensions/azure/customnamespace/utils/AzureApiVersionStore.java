@@ -4,6 +4,7 @@ import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.A
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.BEARER;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.RESOURCE_VERSION_PATH;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.microsoft.aad.adal4j.AuthenticationResult;
@@ -11,7 +12,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
@@ -80,7 +80,6 @@ public class AzureApiVersionStore {
     }
 
 
-    //TODO: Discuss to make it singleton
     public static String getAptApiVersion(HttpClient httpClient, String url, String version, String resource, AuthenticationResult authTokenResult) {
         String api_version = null;
         if (!versionsMap.containsKey(resource)) {
@@ -92,7 +91,6 @@ public class AzureApiVersionStore {
 
     }
 
-    // TODO: Devise a better way to do it. Update the api version after reading it from error message
     private static String queryApiVersion(HttpClient httpClient, String url, String version, AuthenticationResult authTokenResult) {
         String api_version = null;
         try {

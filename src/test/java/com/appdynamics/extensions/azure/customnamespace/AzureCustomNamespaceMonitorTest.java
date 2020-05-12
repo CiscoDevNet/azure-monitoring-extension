@@ -1,8 +1,10 @@
 package com.appdynamics.extensions.azure.customnamespace;
 
-import org.junit.After;
-import static org.junit.Assert.*;
-import org.junit.Before;
+import com.google.common.collect.Maps;
+import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
+import org.junit.Test;
+
+import java.util.Map;
 
 /*
  Copyright 2019. AppDynamics LLC and its affiliates.
@@ -12,11 +14,12 @@ import org.junit.Before;
 */
 public class AzureCustomNamespaceMonitorTest {
 
-    @Before
-    public void setUp() throws Exception {
-    }
-
-    @After
-    public void tearDown() throws Exception {
+    @Test
+    public void test() throws TaskExecutionException {
+        AzureCustomNamespaceMonitor monitor = new AzureCustomNamespaceMonitor();
+        Map<String, String> taskArgs = Maps.newHashMap();
+        taskArgs.put("config-file", "src/test/resources/config.yml");
+        taskArgs.put("metric-file", "src/test/resources/metrics.xml");
+        monitor.execute(taskArgs, null);
     }
 }
