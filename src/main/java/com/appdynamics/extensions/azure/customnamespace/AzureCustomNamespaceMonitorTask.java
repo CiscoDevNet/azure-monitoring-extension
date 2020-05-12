@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.LongAdder;
  The copyright notice above does not evidence any actual or intended publication of such source code.
 */
 public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
-    Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureCustomNamespaceMonitorTask.class);
+    private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureCustomNamespaceMonitorTask.class);
     private String metricPrefix;
     private MonitorContextConfiguration monitorContextConfiguration;
     private Configuration config;

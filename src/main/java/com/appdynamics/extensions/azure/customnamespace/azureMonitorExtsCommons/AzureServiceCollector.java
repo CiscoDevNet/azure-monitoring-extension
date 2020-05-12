@@ -30,7 +30,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.LongAdder;
 
 public class AzureServiceCollector implements Callable<List<Metric>> {
-    Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureServiceCollector.class);
+    private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureServiceCollector.class);
     private Azure azure;
     private Service service;
     private Account account;

@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
  The copyright notice above does not evidence any actual or intended publication of such source code.
 */
 public class AzureApiVersionStore {
-    static Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureApiVersionStore.class);
+    private static Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureApiVersionStore.class);
     private static Map<String, String> versionsMap = Maps.newConcurrentMap();
     private static String DATE_REGEX = "(20\\d\\d-\\d\\d-\\d\\d)"; // To match the Azure api date formats
     private static Boolean updateVersionMap = false;

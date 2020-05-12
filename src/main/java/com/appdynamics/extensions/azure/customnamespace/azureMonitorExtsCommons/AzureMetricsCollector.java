@@ -75,7 +75,7 @@ import java.util.concurrent.atomic.LongAdder;
  The copyright notice above does not evidence any actual or intended publication of such source code.
 */
 public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
-    private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger("AzureMetricsCollector.class");
+    private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureMetricsCollector.class);
     private Azure azure;
     private Service monitoringService;
     private Account account;
