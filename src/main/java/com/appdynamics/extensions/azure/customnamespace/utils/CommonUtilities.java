@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 */
 public class CommonUtilities {
 
-    private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger("CommonUtilities.class");
+    private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger(CommonUtilities.class);
     public static boolean checkStringPatternMatch(String fullName, List<String> configPatterns) {
         for (String configPattern : configPatterns) {
             if (checkRegexMatch(fullName, configPattern)) {

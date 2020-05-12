@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import java.util.List;
 
 public class TargetJsonResponseParser {
-    Logger LOGGER = ExtensionsLoggerFactory.getLogger(TargetJsonResponseParser.class);
+    private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger(TargetJsonResponseParser.class);
     public String metricPrefix;
     public Target target;
 
