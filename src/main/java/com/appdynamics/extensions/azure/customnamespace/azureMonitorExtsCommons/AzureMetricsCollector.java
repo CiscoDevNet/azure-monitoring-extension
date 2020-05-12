@@ -97,7 +97,7 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
         this.requestCounter = builder.requestCounter;
     }
 
-    public void setService(T serviceQueryId){
+    public void setService(T serviceQueryId) {
         this.service = serviceQueryId;
     }
 
@@ -111,7 +111,7 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
         try {
             String serviceName = monitoringService.getServiceName();
             Stat stats = null;
-            if (monitorContextConfiguration.getConfigYml().get("filterStats").equals(true))
+            if (monitorContextConfiguration.getConfigYml().get("filterStats") == null || monitorContextConfiguration.getConfigYml().get("filterStats").equals("true"))
                 stats = ((Stat.Stats) monitorContextConfiguration.getMetricsXml()).getStats(serviceName);
             String resourceId = getFilteredResourceId(service);
             if (resourceId != null) {
@@ -119,7 +119,8 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
                 LOGGER.debug("Starting metrics collection for displayname {}. service {}", account.getDisplayName(), matchedServiceName);
                 for (MetricDefinition metricDefinition : azure.metricDefinitions().listByResource(resourceId)) {
                     MetricConfig matchedConfig = isMetricConfigured(stats, metricDefinition.name().value());
-                    metrics.addAll(queryMetricDefinition(metricDefinition, matchedConfig));
+                    if (matchedConfig != null)
+                        metrics.addAll(queryMetricDefinition(metricDefinition, matchedConfig));
                 }
                 LOGGER.debug("Successfully collected all the metrics for display name {}, service {}", account.getDisplayName(), matchedServiceName);
             } else {
@@ -169,19 +170,19 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
         return null;
     }
 
-    private boolean checkServiceDimensions(List<LocalizableString> dimensions) {
-        if (dimensions == null || dimensions.size() == 0)
-            return false;
-        return true;
-    }
-
     private String buildDimensionsFilterQuery(List<LocalizableString> dimensions) {
-//        sanitizeDimensions(dimensions);
         if (checkServiceDimensions(dimensions) == false)
             return null;
         StringBuilder filterQuery = new StringBuilder();
         filterQuery.append(dimensions.get(0).value() + " eq '*'");
         return filterQuery.toString();
+    }
+
+
+    private boolean checkServiceDimensions(List<LocalizableString> dimensions) {
+        if (dimensions == null || dimensions.size() == 0)
+            return false;
+        return true;
     }
 
     private String getFilteredResourceId(T service) {
@@ -367,7 +368,7 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
         }
 
         public Builder withAccount(Account account) {
-            this.account= account;
+            this.account = account;
             return this;
         }
 

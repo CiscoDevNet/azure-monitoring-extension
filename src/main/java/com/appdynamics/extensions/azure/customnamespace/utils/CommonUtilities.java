@@ -25,7 +25,6 @@ public class CommonUtilities {
     public static boolean checkStringPatternMatch(String fullName, List<String> configPatterns) {
         for (String configPattern : configPatterns) {
             if (checkRegexMatch(fullName, configPattern)) {
-//                LOGGER.debug("Match found for name :" + fullName);
                 return true;
             }
         }

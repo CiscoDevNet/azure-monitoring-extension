@@ -2,7 +2,7 @@ package com.appdynamics.extensions.azure.customnamespace.azureMonitorExtsCommons
 
 import com.appdynamics.extensions.ABaseMonitor;
 import com.appdynamics.extensions.TasksExecutionServiceProvider;
-import com.appdynamics.extensions.metrics.Metric;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.yaml.snakeyaml.Yaml;
 
@@ -51,9 +51,8 @@ public abstract class AzureMonitor<T> extends ABaseMonitor {
         getLogger().info("Starting Azure Cloud Monitoring task");
 
         try {
-            List<Metric> statsForUpload = getStatsForUpload(serviceProvider, config);
+            getStatsForUpload(serviceProvider, config);
 
-            serviceProvider.getMetricWriteHelper().transformAndPrintMetrics(statsForUpload);
             serviceProvider.getMetricWriteHelper().onComplete();
 
         } catch (Exception ex) {
@@ -61,14 +60,13 @@ public abstract class AzureMonitor<T> extends ABaseMonitor {
         }
     }
 
-    protected List<Map<String, ?>> getServers() {
-        return getAccounts();
-    }
-
-    protected abstract List<Map<String, ?>> getAccounts();
-
-    protected abstract List<Metric> getStatsForUpload(TasksExecutionServiceProvider serviceProvider, T config);
+    protected abstract void getStatsForUpload(TasksExecutionServiceProvider serviceProvider, T config);
 
     protected abstract Logger getLogger();
+
+    protected List<Map<String, ?>> getServers() {
+        List<Map<String, ?>> serversList = Lists.newArrayList();
+        return serversList;
+    }
 
 }

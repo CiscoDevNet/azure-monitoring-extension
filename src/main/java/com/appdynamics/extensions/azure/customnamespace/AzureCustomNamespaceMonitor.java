@@ -10,17 +10,10 @@ import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.M
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.METRIC_PATH_SEPARATOR;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
-import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.util.AssertUtils;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.PatternLayout;
 import org.slf4j.Logger;
 
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,13 +44,7 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
     }
 
     @Override
-    protected List<Map<String, ?>> getAccounts() {
-        return null;
-    }
-
-    @Override
-    protected List<Metric> getStatsForUpload(TasksExecutionServiceProvider tasksExecutionServiceProvider, Configuration config) {
-        List<Metric> collectedMetrics = Arrays.asList();
+    protected void getStatsForUpload(TasksExecutionServiceProvider tasksExecutionServiceProvider, Configuration config) {
         try {
             List<Account> accounts = config.getAccounts();
             String metricPrefix = config.getMetricPrefix();
@@ -70,7 +57,6 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
         } catch (Exception e) {
             LOGGER.error("Error in Azure CustomNameSpace monitoring extension, while processing the account", e);
         }
-        return collectedMetrics;
     }
 
     protected org.slf4j.Logger getLogger() {
@@ -84,19 +70,7 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
         monitorContextConfiguration.setMetricXml(args.get("metric-file"), Stat.Stats.class);
     }
 
-    @Override
-    protected List<Map<String, ?>> getServers() {
-        Map<String, String> serversMap = new HashMap<String, String>();
-        List<Map<String, ?>> serversList = new ArrayList<Map<String, ?>>();
-        serversList.add(serversMap);
-        return serversList;
-    }
-
     public static void main(String[] args) throws TaskExecutionException {
-        ConsoleAppender ca = new ConsoleAppender();
-        ca.setWriter(new OutputStreamWriter(System.out));
-        ca.setLayout(new PatternLayout("%-5p [%t]: %m%n"));
-        ca.setThreshold(Level.DEBUG);
 
         AzureCustomNamespaceMonitor monitor = new AzureCustomNamespaceMonitor();
 

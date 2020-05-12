@@ -10,91 +10,49 @@
 package com.appdynamics.extensions.azure.customnamespace.config;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Prashant Mehta
- *
  */
 public class Account {
-	
-	private String displayName;
 
-	private Credentials credentials;
+    private String displayName;
 
-	private Set<String> resourceGroups;
+    private Credentials credentials;
 
-	private List<Service> services;
+    private List<Service> services;
 
-	private String interval;
+    private List<Target> targets;
 
-	private List<String> regions;
-
-	private List<Target> targets;
-	
-	public String getDisplayName() {
-		return displayName;
-	}
-
-	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
-	}
-
-    private List<Server> servers;
-
-	public Set<String> getResourceGroups() {
-		return resourceGroups;
-	}
-
-	public void setResourceGroups(Set<String> resourceGroups) {
-		this.resourceGroups = resourceGroups;
-	}
-
-	public List<String> getRegions() {
-		return regions;
-	}
-
-	public void setRegions(List<String> regions) {
-		this.regions = regions;
-	}
-
-    public List<Server> getServers() {
-        return servers;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public void setServers(List<Server> servers) {
-        this.servers = servers;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
-	public String 	getInterval() {
-		return interval;
-	}
+    public Credentials getCredentials() {
+        return credentials;
+    }
 
-	public void setInterval(String interval) {
-		this.interval = interval;
-	}
+    public void setCredentials(Credentials credentials) {
+        this.credentials = credentials;
+    }
 
-	public Credentials getCredentials() {
-		return credentials;
-	}
+    public List<Service> getServices() {
+        return services;
+    }
 
-	public void setCredentials(Credentials credentials) {
-		this.credentials = credentials;
-	}
+    public void setServices(List<Service> services) {
+        this.services = services;
+    }
 
-	public List<Service> getServices() {
-		return services;
-	}
+    public List<Target> getTargets() {
+        return targets;
+    }
 
-	public void setServices(List<Service> services) {
-		this.services = services;
-	}
-
-	public List<Target> getTargets() {
-		return targets;
-	}
-
-	public void setTargets(List<Target> targets) {
-		this.targets = targets;
-	}
+    public void setTargets(List<Target> targets) {
+        this.targets = targets;
+    }
 }

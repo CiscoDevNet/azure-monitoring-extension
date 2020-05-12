@@ -5,7 +5,7 @@ COPY --from=dtr.corp.appdynamics.com/appdynamics/machine-agent:4.5.18.2430 /opt/
 
 RUN apk update && apk add wget unzip
 
-RUN sleep 60
+#RUN sleep 60
 
 ADD target/AzureCustomNamespaceMonitor-*.zip /opt/appdynamics/machine-agent/monitors
 
