@@ -111,7 +111,7 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
         try {
             String serviceName = monitoringService.getServiceName();
             Stat stats = null;
-            if (monitorContextConfiguration.getConfigYml().get("filterStats") == null || monitorContextConfiguration.getConfigYml().get("filterStats").equals("true"))
+            if (monitorContextConfiguration.getConfigYml().get("filterStats") == null || monitorContextConfiguration.getConfigYml().get("filterStats").equals(true))
                 stats = ((Stat.Stats) monitorContextConfiguration.getMetricsXml()).getStats(serviceName);
             String resourceId = getFilteredResourceId(service);
             if (resourceId != null) {
@@ -158,7 +158,7 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
                     .startingFrom(recordDateTime.minusMinutes(config.getMetricsTimeRange().getStartTimeInMinsBeforeNow()))
                     .endsBefore(recordDateTime.minusMinutes(config.getMetricsTimeRange().getEndTimeInMinsBeforeNow()))
                     .withAggregation(matchedConfig.getAggregationType())
-                    .withInterval(Period.minutes(metricDefinition.metricAvailabilities().get(0).timeGrain().toStandardMinutes().getMinutes())); //TODO: pre-configure this time interval as per the requirement
+                    .withInterval(Period.minutes(metricDefinition.metricAvailabilities().get(0).timeGrain().toStandardMinutes().getMinutes()));
             if (metricDefinition.isDimensionRequired()) {
                 String defaultFilter = buildDimensionsFilterQuery(metricDefinition.dimensions());
                 metricsQueryExecute.withOdataFilter(defaultFilter);

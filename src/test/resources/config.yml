@@ -1,41 +1,41 @@
 #prefix used to show metrics in AppDynamics
-#metricPrefix: "Server|Component:<TIER_ID>|Custom Metrics|Azure|"
-metricPrefix: "Custom Metrics|Azure|"
+metricPrefix: "Server|Component:<TIER_ID>|Custom Metrics|Azure|"
+#metricPrefix: "Custom Metrics|Azure|"
 
 accounts:
-  - displayName: "Azure Storage Monitor"
+  - displayName: "Azure VM"
     credentials:
+         subscriptionId: ""
          client: ""
          tenant: ""
          secret: ""
-         subscriptionId: ""
 
     services:
-       - resourceGroups: ["my-rg-tf"]  # Please put the required resourceGroups only
-         serviceName: "Storage account"
-         regions: ["eastus"]
-         serviceInstances: ["diag.*"]
+       - resourceGroups: ["my-rg"]  # Please put the required resourceGroups only
+         serviceName: "Virtual machine"
+         regions: ["East US 2"]
+         serviceInstances: ["vm.*"]
+
+
 
 # aggregationType ==> "None", "Average", "Minimum", "Maximum", "Total", "Count" refer: https://docs.microsoft.com/en-us/azure/azure-monitor/app/metrics-explorer
-    targets:
-       - displayName: "Az Containers"
-         resource: "/resourceGroups/<MY-RESOURCE-GROUP>/providers/Microsoft.Compute/virtualMachines/<MY-RESOURCE>/providers/microsoft.insights/metrics"
-         resourceGroups: ["my-rg"]
-         serviceInstances: ["my-vm"]
-         metrics:
-            - attr: "Network In Total"
-              aggregationType: "count"
-            - attr: "Network Out Total"
-              aggregationType: "count"
-            - attr: "Disk Write Bytes"
-              aggregationType: "count"
-            - attr: "Disk Read Operations/Sec"
-              aggregationType: "count"
-            - attr: "Disk Write Operations/Sec"
-              aggregationType: "count"
+#    targets:
+#       - displayName: "Az target VM"
+#         resource: "/resourceGroups/<MY-RESOURCE-GROUP>/providers/Microsoft.Compute/virtualMachines/<MY-RESOURCE>/providers/microsoft.insights/metrics"
+#         resourceGroups: ["my-rg"]
+#         serviceInstances: ["vm.*"]
+#         metrics:
+#            - attr: "Network In Total"
+#              aggregationType: "count"
+#            - attr: "Network Out Total"
+#              aggregationType: "count"
+#            - attr: "Disk Write Bytes"
+#              aggregationType: "count"
+#            - attr: "Disk Read Operations/Sec"
+#              aggregationType: "count"
+#            - attr: "Disk Write Operations/Sec"
+#              aggregationType: "count"
 
-
-filterStats: false # flag to use metrics.xml. Default set to false.
 
 proxyConfig:
   host:
@@ -50,7 +50,7 @@ metricsTimeRange:
 concurrencyConfig:
   noOfResourceGroupThreads: 3
   noOfServiceCollectorThreads: 3
-  threadTimeout: 30  #Thread timeout in seconds
+  threadTimeout: 300  #Thread timeout in seconds
 
 connection:
   sslCertCheckEnabled: false
@@ -59,7 +59,7 @@ connection:
 
 #By default we support upto 5 accounts, and 1 thread is required per account.
 numberOfThreads: 5
-
+#filterStats: false
 #================================= Example configurations below =================================
 #  - displayName: "AzureAccount Storage"
 #    resourceGroups: ["test-ext.*"]
@@ -72,3 +72,23 @@ numberOfThreads: 5
 #    serviceName: "SQL server"
 #    regions: ["australia.*"]
 #    serviceInstances: [".*"]
+
+controllerInfo:
+  controllerHost: ""
+  controllerPort: 8080
+  account: "customer1"
+  username: "user1"
+  password: "welcome"
+  encryptedPassword: ""
+  controllerSslEnabled: false
+  enableOrchestration: false
+  uniqueHostId: ""
+  accountAccessKey: ""
+  machinePath: ""
+  simEnabled: true
+  applicationName: ""
+  tierName: ""
+  nodeName: ""
+
+#Encryption key for your controllerInfo password
+encryptionKey: ""

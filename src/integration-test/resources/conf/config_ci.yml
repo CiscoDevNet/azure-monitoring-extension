@@ -35,13 +35,6 @@ accounts:
 #              aggregationType: "count"
 
 
-filterStats: false # flag to use metrics.xml. Default set to false.
-
-#Provide Encryption key for Encrypted password.
-credentialsDecryptionConfig:
-  enableDecryption: "false"
-  encryptionKey:
-
 proxyConfig:
   host:
   port:
@@ -64,6 +57,7 @@ connection:
 
 #By default we support upto 5 accounts, and 1 thread is required per account.
 numberOfThreads: 5
+filterStats: false # flag to use metrics.xml.
 
 controllerInfo:
     controllerHost: "localhost"
@@ -82,6 +76,9 @@ controllerInfo:
     applicationName: ""
     tierName: ""
     nodeName: ""
+
+#Encryption key for your controllerInfo password
+encryptionKey: ""
 #================================= Example configurations below =================================
 #  - displayName: "AzureAccount Storage"
 #    resourceGroups: ["test-ext.*"]

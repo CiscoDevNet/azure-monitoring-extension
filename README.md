@@ -241,5 +241,5 @@ Always feel free to fork and contribute any changes directly here on [GitHub](ht
    |Extension Version         |1.0.0      |
    |Controller Compatibility  |4.4 or Later|
    |Agent Compatibility        | 4.5.13 or later|
-   |Last Update               |31 March, 2020 |
+   |Last Update               |12 May, 2020 |
 List of changes to this extension can be found [here](https://github.com/Appdynamics/azure-custom-namespace-monitoring-extension/blob/master/CHANGELOG.md)
