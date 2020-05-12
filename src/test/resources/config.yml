@@ -17,30 +17,25 @@ accounts:
          serviceInstances: ["diag.*"]
 
 # aggregationType ==> "None", "Average", "Minimum", "Maximum", "Total", "Count" refer: https://docs.microsoft.com/en-us/azure/azure-monitor/app/metrics-explorer
-#    targets:
-#       - displayName: "Az Containers"
-#         resource: "/resourceGroups/<MY-RESOURCE-GROUP>/providers/Microsoft.Compute/virtualMachines/<MY-RESOURCE>/providers/microsoft.insights/metrics"
-#         resourceGroups: ["my-rg"]
-#         serviceInstances: ["my-vm"]
-#         metrics:
-#            - attr: "Network In Total"
-#              aggregationType: "count"
-#            - attr: "Network Out Total"
-#              aggregationType: "count"
-#            - attr: "Disk Write Bytes"
-#              aggregationType: "count"
-#            - attr: "Disk Read Operations/Sec"
-#              aggregationType: "count"
-#            - attr: "Disk Write Operations/Sec"
-#              aggregationType: "count"
+    targets:
+       - displayName: "Az Containers"
+         resource: "/resourceGroups/<MY-RESOURCE-GROUP>/providers/Microsoft.Compute/virtualMachines/<MY-RESOURCE>/providers/microsoft.insights/metrics"
+         resourceGroups: ["my-rg"]
+         serviceInstances: ["my-vm"]
+         metrics:
+            - attr: "Network In Total"
+              aggregationType: "count"
+            - attr: "Network Out Total"
+              aggregationType: "count"
+            - attr: "Disk Write Bytes"
+              aggregationType: "count"
+            - attr: "Disk Read Operations/Sec"
+              aggregationType: "count"
+            - attr: "Disk Write Operations/Sec"
+              aggregationType: "count"
 
 
 filterStats: false # flag to use metrics.xml. Default set to false.
-
-#Provide Encryption key for Encrypted password.
-credentialsDecryptionConfig:
-  enableDecryption: "false"
-  encryptionKey:
 
 proxyConfig:
   host:

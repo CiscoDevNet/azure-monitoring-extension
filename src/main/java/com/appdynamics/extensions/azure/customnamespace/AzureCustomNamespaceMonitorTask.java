@@ -57,7 +57,7 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
     public void run() {
         try {
             LOGGER.debug("Starting processing for the account {}", account.getDisplayName());
-            azure = AuthenticationFactory.getAzure(account.getCredentials());
+            azure = AuthenticationFactory.getAzure(account.getCredentials(), config.getEncryptionKey());
             if (azure == null)
                 throw new Exception("Failed: built Azure object is null");
             else

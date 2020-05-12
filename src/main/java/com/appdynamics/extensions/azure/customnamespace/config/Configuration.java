@@ -20,10 +20,6 @@ public class Configuration {
 
     private List<Account> accounts;
 
-    private String metricPrefix;
-
-    private CredentialsDecryptionConfig credentialsDecryptionConfig;
-
     private ProxyConfig proxyConfig;
 
     private ConcurrencyConfig concurrencyConfig;
@@ -32,13 +28,15 @@ public class Configuration {
 
     private int numberOfThreads;
 
-    private TaskSchedule taskSchedule;
-
     private Connection connection;
 
     private boolean filterStats;
 
     private ControllerInfo controllerInfo;
+
+    private String metricPrefix;
+
+    private String encryptionKey;
 
     public List<Account> getAccounts() {
         return accounts;
@@ -46,15 +44,6 @@ public class Configuration {
 
     public void setAccounts(List<Account> accounts) {
         this.accounts = accounts;
-    }
-
-    public CredentialsDecryptionConfig getCredentialsDecryptionConfig() {
-        return credentialsDecryptionConfig;
-    }
-
-    public void setCredentialsDecryptionConfig(
-            CredentialsDecryptionConfig credentialsDecryptionConfig) {
-        this.credentialsDecryptionConfig = credentialsDecryptionConfig;
     }
 
     public ProxyConfig getProxyConfig() {
@@ -79,14 +68,6 @@ public class Configuration {
 
     public void setMetricPrefix(String metricPrefix) {
         this.metricPrefix = metricPrefix;
-    }
-
-    public TaskSchedule getTaskSchedule() {
-        return taskSchedule;
-    }
-
-    public void setTaskSchedule(TaskSchedule taskSchedule) {
-        this.taskSchedule = taskSchedule;
     }
 
     public int getNumberOfThreads() {
@@ -127,5 +108,13 @@ public class Configuration {
 
     public void setControllerInfo(ControllerInfo controllerInfo) {
         this.controllerInfo = controllerInfo;
+    }
+
+    public String getEncryptionKey() {
+        return encryptionKey;
+    }
+
+    public void setEncryptionKey(String encryptionKey) {
+        this.encryptionKey = encryptionKey;
     }
 }
