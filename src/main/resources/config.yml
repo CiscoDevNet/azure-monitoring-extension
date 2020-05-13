@@ -59,7 +59,7 @@ connection:
 
 #By default we support upto 5 accounts, and 1 thread is required per account.
 numberOfThreads: 5
-filterStats: false
+#filterStats: false
 #================================= Example configurations below =================================
 #  - displayName: "AzureAccount Storage"
 #    resourceGroups: ["test-ext.*"]
