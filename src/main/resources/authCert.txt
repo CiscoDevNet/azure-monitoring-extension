@@ -1,0 +1,5 @@
+   subscription=<Your-Subscription-Id>
+   tenant=<Your-Tenant-Id>
+   client=<Your-Client-ID>
+   certificate=<Your-Cert-Path>
+   certificatePassword=<Your-Cert-Pwd>

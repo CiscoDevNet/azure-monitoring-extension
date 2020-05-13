@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright 2019. AppDynamics LLC and its affiliates.
+  ~ All Rights Reserved.
+  ~ This is unpublished proprietary source code of AppDynamics LLC and its affiliates.
+  ~ The copyright notice above does not evidence any actual or intended publication of such source code.
+  -->
+
+<!--
+aggregationType = AVERAGE | SUM | OBSERVATION
+timeRollUpType = AVERAGE | SUM | CURRENT
+clusterRollUpType = INDIVIDUAL | COLLECTIVE
+-->
+<!--
+Set delta = true for metric to report per-min data
+-->
+
+<stats>
+    <!--Add stat for each of the service-->
+    <stat service="Virtual machine" resourceType="Microsoft.Compute">
+        <metric attr="Percentage CPU" alias="Percentage CPU" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Network In Billable" alias="Network In Billable" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Network Out Billable" alias="Network Out Billable" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Disk Read Bytes" alias="Disk Read Bytes" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Disk Write Bytes" alias="Disk Write Bytes" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Disk Read Operations/Sec" alias="Disk Read Operations/Sec" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Disk Write Operations/Sec" alias="Disk Write Operations/Sec" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="CPU Credits Remaining" alias="CPU Credits Remaining" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Inbound Flows" alias="Inbound Flows" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Outbound Flows" alias="Outbound Flows" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Inbound Flows Maximum Creation Rate" alias="Inbound Flows Maximum Creation Rate" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Outbound Flows Maximum Creation Rate" alias="Outbound Flows Maximum Creation Rate" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Network In Total" alias="Network In Total" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+        <metric attr="Network Out Total" alias="Network Out Total" aggregationType="AVERAGE" timeRollUpType="AVERAGE" clusterRollUpType="COLLECTIVE"/>
+    </stat>
+</stats>
