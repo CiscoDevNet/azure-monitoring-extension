@@ -1,2 +1,5 @@
+### Version 1.0.1
+* Fixed metric collection issue for multiple services
+
 ### Version 1.0.0
 * Initial open source release
