@@ -42,7 +42,7 @@ public class CommonUtilities {
         LOGGER.debug("Task collection started for : " + taskSource);
         for (FutureTask<List<Metric>> task : tasks) {
             try {
-                metrics = task.get(timeout, TimeUnit.SECONDS);
+                metrics.addAll(task.get(timeout, TimeUnit.SECONDS));
             } catch (InterruptedException var6) {
                 LOGGER.error("Task interrupted. ", var6);
             } catch (ExecutionException var7) {
