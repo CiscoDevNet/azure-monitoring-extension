@@ -15,14 +15,14 @@
 
     <groupId>com.appdynamics.extensions</groupId>
     <artifactId>azure-custom-namespace-monitoring-extension</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <name>azure-custom-namespace-monitoring-extension</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
-        <target.dir>${project.build.directory}/AzureCustomNamespaceMonitor</target.dir>
-        <target.name>AzureCustomNamespaceMonitor</target.name>
+        <target.dir>${project.build.directory}/AzureMonitor</target.dir>
+        <target.name>AzureMonitor</target.name>
         <lib.dir>${basedir}/lib</lib.dir>
         <skipITs>true</skipITs>
     </properties>
@@ -148,7 +148,7 @@
                         <configuration>
                             <target>
                                 <property name="target.dir"
-                                          value="${project.build.directory}/AzureCustomNamespaceMonitor"/>
+                                          value="${project.build.directory}/AzureMonitor"/>
                                 <mkdir dir="${target.dir}"/>
                                 <copy todir="${target.dir}">
                                     <fileset dir="src/main/resources" includes="monitor.xml"/>
@@ -168,7 +168,7 @@
                                 </copy>
                                 <zip destfile="${target.dir}-${project.version}.zip">
                                     <zipfileset dir="${target.dir}" filemode="755"
-                                                prefix="AzureCustomNamespaceMonitor"/>
+                                                prefix="AzureMonitor"/>
                                 </zip>
                                 <delete dir="${target.dir}"/>
                             </target>
