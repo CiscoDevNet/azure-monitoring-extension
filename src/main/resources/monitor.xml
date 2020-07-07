@@ -7,22 +7,22 @@
   -->
 
 <monitor>
-    <name>Azure CustomNamespace Monitor</name>
+    <name>Azure Monitor</name>
     <type>managed</type>
-    <description>Azure CustomNamespace Monitoring Extension</description>
+    <description>Azure Monitoring Extension</description>
     <monitor-configuration></monitor-configuration>
     <monitor-run-task>
         <execution-style>periodic</execution-style>
         <execution-frequency-in-seconds>60</execution-frequency-in-seconds>
-        <name>Azure CustomNamespace Monitor Run task</name>
-        <display-name>Azure CustomNamespace Monitor Run task</display-name>
-        <description>Azure CustomNameSpace Monitor Run task</description>
+        <name>Azure Monitor Run task</name>
+        <display-name>Azure Monitor Run task</display-name>
+        <description>Azure Monitor Run task</description>
         <type>java</type>
         <execution-timeout-in-secs>60</execution-timeout-in-secs>
 
         <task-arguments>
-            <argument name="config-file" is-required="true" default-value="monitors/AzureCustomNamespaceMonitor/config.yml"/>
-            <argument name="metric-file" is-required="true" default-value="monitors/AzureCustomNamespaceMonitor/metrics.xml" />
+            <argument name="config-file" is-required="true" default-value="monitors/AzureMonitor/config.yml"/>
+            <argument name="metric-file" is-required="true" default-value="monitors/AzureMonitor/metrics.xml" />
         </task-arguments>
 
         <java-task>
