@@ -15,7 +15,7 @@
 
     <groupId>com.appdynamics.extensions</groupId>
     <artifactId>azure-custom-namespace-monitoring-extension</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <name>azure-custom-namespace-monitoring-extension</name>
     <properties>

@@ -1,3 +1,7 @@
+### Version 1.0.3
+* Changes related to last reported timeseries element
+* Enabled logging for target API response
+
 ### Version 1.0.2
 * Changed extension name to Azure Monitoring Extension
 

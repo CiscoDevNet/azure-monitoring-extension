@@ -142,6 +142,7 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
             for (TimeSeriesElement timeElement : azureMetric.timeseries()) {
                 MetricValue latestElement = getLatestTimeSeriesElement(timeElement);
                 String metricValue = fetchValueAsPerAggregation(latestElement, matchedConfig.getAggregationType());
+                LOGGER.debug("Raw metric data from Azure: metric name: "+matchedConfig.getAlias()+", metric value: "+metricValue);
                 if (!metricValue.equals("null")) {
                     Metric metric = new Metric(matchedConfig.getAlias(), metricValue, metricPrefix + matchedServiceName + METRIC_PATH_SEPARATOR + matchedConfig.getAlias());
                     metrics.add(metric);
@@ -300,6 +301,12 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
 
     private MetricValue getLatestTimeSeriesElement(TimeSeriesElement timeSeriesElement) {
         List<MetricValue> datapoints = timeSeriesElement.data();
+        for(int i=datapoints.size()-1; i >= 0; i--){
+            MetricValue datapoint = datapoints.get(i);
+            if(datapoint.average() != null || datapoint.count() != null || datapoint.maximum() != null || datapoint.minimum() != null || datapoint.total() != null){
+                return datapoints.get(i);
+            }
+        }
         return datapoints.get(datapoints.size() - 1);
     }
 
