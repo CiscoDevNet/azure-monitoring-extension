@@ -226,6 +226,7 @@ public class AzureTargetMonitorTask implements Callable {
         request.addHeader(AUTHORIZATION, BEARER + authTokenResult.getAccessToken());
         HttpResponse response = httpClient.execute(request);
         String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
+        LOGGER.debug("Target Response from endpoint: "+responseBody);
         JSONObject jsonObject = new JSONObject(responseBody);
         TargetUtils.scanJsonResponseforMetricConfigs(jsonObject, actualMetricConfigs);
         return actualMetricConfigs;
