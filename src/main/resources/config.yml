@@ -44,7 +44,7 @@ proxyConfig:
   password:
 
 metricsTimeRange:
-  startTimeInMinsBeforeNow: 50
+  startTimeInMinsBeforeNow: 10
   endTimeInMinsBeforeNow: 0
 
 concurrencyConfig:
