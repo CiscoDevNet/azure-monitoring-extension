@@ -6,7 +6,9 @@ import com.appdynamics.extensions.azure.customnamespace.config.MetricConfig;
 import com.appdynamics.extensions.azure.customnamespace.config.Service;
 import com.appdynamics.extensions.azure.customnamespace.config.Stat;
 import com.appdynamics.extensions.azure.customnamespace.utils.CommonUtilities;
+
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.METRIC_PATH_SEPARATOR;
+
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
@@ -140,11 +142,13 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
         requestCounter.increment();
         for (com.microsoft.azure.management.monitor.Metric azureMetric : metricCollection.metrics()) {
             for (TimeSeriesElement timeElement : azureMetric.timeseries()) {
-                MetricValue latestElement = getLatestTimeSeriesElement(timeElement);
-                String metricValue = fetchValueAsPerAggregation(latestElement, matchedConfig.getAggregationType());
-                if (!metricValue.equals("null")) {
-                    Metric metric = new Metric(matchedConfig.getAlias(), metricValue, metricPrefix + matchedServiceName + METRIC_PATH_SEPARATOR + matchedConfig.getAlias());
-                    metrics.add(metric);
+                if (timeElement.data() != null && timeElement.data().size() > 0) {
+                    MetricValue latestElement = getLatestTimeSeriesElement(timeElement);
+                    String metricValue = fetchValueAsPerAggregation(latestElement, matchedConfig.getAggregationType());
+                    if (!metricValue.equals("null")) {
+                        Metric metric = new Metric(matchedConfig.getAlias(), metricValue, metricPrefix + matchedServiceName + METRIC_PATH_SEPARATOR + matchedConfig.getAlias());
+                        metrics.add(metric);
+                    }
                 }
             }
         }
@@ -300,6 +304,12 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
 
     private MetricValue getLatestTimeSeriesElement(TimeSeriesElement timeSeriesElement) {
         List<MetricValue> datapoints = timeSeriesElement.data();
+        for (int i = datapoints.size() - 1; i >= 0; i--) {
+            MetricValue datapoint = datapoints.get(i);
+            if (datapoint.average() != null || datapoint.count() != null || datapoint.maximum() != null || datapoint.minimum() != null || datapoint.total() != null) {
+                return datapoints.get(i);
+            }
+        }
         return datapoints.get(datapoints.size() - 1);
     }
 
