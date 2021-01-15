@@ -12,3 +12,8 @@ bin/
 resource-version.json
 *.tfstate*
 .terraform/
+.teamcity/*
+docker-compose.yml
+Dockerfile
+Makefile
+src/integration-test/*
