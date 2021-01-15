@@ -1,4 +1,4 @@
-# Azure CustomNamespace Monitoring Extension
+# Azure Monitoring Extension
 
 ## Use Case
 The extension collects metrics supported by Azure Monitor using the Azure management APIs and displays them in the AppDynamics Metric Browser. Please refer the link below for details on supported metrics.
@@ -22,9 +22,9 @@ The extension should be able to connect to the Azure management Apis in order to
 **Note : This extension is compatible with Machine Agent version 4.5.13 or later.
 
 ## Installation
-1. Run 'mvn clean install' from azure-custom-namespace-monitoring-extension
-2. Copy and unzip AzureCustomNamespaceMonitor-\<version\>.zip from 'target' directory into \<machine_agent_dir\>/monitors/
-3. Edit config.yml file in AzureCustomNamespaceMonitor/conf and provide the required configuration (see Configuration section)
+1. Run 'mvn clean install' from azure-monitoring-extension
+2. Copy and unzip AzureMonitor-\<version\>.zip from 'target' directory into \<machine_agent_dir\>/monitors/
+3. Edit config.yml file in AzureMonitor/conf and provide the required configuration (see Configuration section)
 4. Restart the Machine Agent.
 
 Please place the extension in the **"monitors"** directory of your **Machine Agent** installation directory. Do not place the extension in the **"extensions"** directory of your **Machine Agent** installation directory.
@@ -219,13 +219,13 @@ Please provide the following in order for us to assist you better.
    For any support related questions, you can also contact help@appdynamics.com.
 
 ## Contributing
-Always feel free to fork and contribute any changes directly here on [GitHub](https://github.com/Appdynamics/azure-custom-namespace-monitoring-extension).
+Always feel free to fork and contribute any changes directly here on [GitHub](https://github.com/Appdynamics/azure-monitoring-extension).
 
 ## Version
    |          Name            |  Version   |
    |--------------------------|------------|
-   |Extension Version         |1.0.0      |
+   |Extension Version         |1.0.4      |
    |Controller Compatibility  |4.4 or Later|
    |Agent Compatibility        | 4.5.13 or later|
-   |Last Update               |12 May, 2020 |
-List of changes to this extension can be found [here](https://github.com/Appdynamics/azure-custom-namespace-monitoring-extension/blob/master/CHANGELOG.md)
+   |Last Update               |15 Jan, 2021 |
+List of changes to this extension can be found [here](https://github.com/Appdynamics/azure-monitoring-extension/blob/master/CHANGELOG.md)

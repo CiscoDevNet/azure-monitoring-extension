@@ -76,6 +76,7 @@ public class TimegrainTargetCollectorTask implements Callable {
         if (response.getStatusLine().toString().contains("200 OK")) {
             requestCounter.increment();
             String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
+            LOGGER.debug("Timegrain Target Response from endpoint: "+responseBody);
             JSONObject jsonObject = new JSONObject(responseBody);
             TargetJsonResponseParser jsonResponseParser = new TargetJsonResponseParser(metricPrefix, target);
             metrics.addAll(jsonResponseParser.parseJsonObject(jsonObject, resourceName, grainEntry.getValue()));
