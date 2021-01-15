@@ -1,3 +1,6 @@
+### Version 1.0.4
+* Updated extension to appd-exts-commons 2.2.4
+
 ### Version 1.0.3
 * Changes related to last reported timeseries element
 * Enabled logging for target API response

@@ -224,8 +224,8 @@ Always feel free to fork and contribute any changes directly here on [GitHub](ht
 ## Version
    |          Name            |  Version   |
    |--------------------------|------------|
-   |Extension Version         |1.0.3      |
+   |Extension Version         |1.0.4      |
    |Controller Compatibility  |4.4 or Later|
    |Agent Compatibility        | 4.5.13 or later|
-   |Last Update               |20 July, 2020 |
+   |Last Update               |15 Jan, 2021 |
 List of changes to this extension can be found [here](https://github.com/Appdynamics/azure-monitoring-extension/blob/master/CHANGELOG.md)
