@@ -17,3 +17,5 @@ docker-compose.yml
 Dockerfile
 Makefile
 src/integration-test/*
+azure.tf
+variables.tf
