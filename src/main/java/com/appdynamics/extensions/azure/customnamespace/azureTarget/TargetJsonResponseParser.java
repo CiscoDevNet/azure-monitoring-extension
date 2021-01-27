@@ -9,6 +9,7 @@
 
 package com.appdynamics.extensions.azure.customnamespace.azureTarget;
 
+import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.MetricConfig;
 import com.appdynamics.extensions.azure.customnamespace.config.Target;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.METRIC_PATH_SEPARATOR;
@@ -25,37 +26,44 @@ public class TargetJsonResponseParser {
     private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger(TargetJsonResponseParser.class);
     public String metricPrefix;
     public Target target;
+    public Account account;
+    private String loggingPrefix;
 
-    public TargetJsonResponseParser(String metricPrefix, Target target) {
+    public TargetJsonResponseParser(String metricPrefix, Account account, Target target) {
         this.metricPrefix = metricPrefix;
         this.target = target;
+        this.account = account;
+        
+        this.loggingPrefix = "[ACCOUNT=" + this.account.getDisplayName() + ", TARGET=" + this.target.getDisplayName() + "]";
     }
 
     public List<Metric> parseJsonObject(JSONObject jsonObject, String resourceName, List<MetricConfig> metricConfigs) {
         List<Metric> metrics = Lists.newArrayList();
-        metricPrefix = metricPrefix + target.getDisplayName() + METRIC_PATH_SEPARATOR;
+        metricPrefix = metricPrefix + account.getDisplayName() + METRIC_PATH_SEPARATOR + target.getDisplayName() + METRIC_PATH_SEPARATOR;
         try {
             JSONArray objectList = jsonObject.getJSONArray("value");
             int length = objectList.length();
             while (length-- > 0) {
                 JSONObject currObj = objectList.getJSONObject(length);
+                String metricName = currObj.getJSONObject("name").getString("value");
                 if (!currObj.getJSONArray("timeseries").isEmpty()) {
-                    String metricName = currObj.getJSONObject("name").getString("value");
                     MetricConfig thisMetricConfig = TargetUtils.matchMetricConfig(metricName, metricConfigs);
-
-                    JSONObject jsonValue = currObj.getJSONArray("timeseries").getJSONObject(0).getJSONArray("data").getJSONObject(TargetUtils.getTimegrain(thisMetricConfig.getTimeSpan()) - 1);
-                    if (jsonValue.keySet().contains(thisMetricConfig.getAggregationType().toLowerCase())) {
-                        Double value = (Double) jsonValue.get(thisMetricConfig.getAggregationType().toLowerCase());
+                    JSONObject metricData = currObj.getJSONArray("timeseries").getJSONObject(0).getJSONArray("data").getJSONObject(TargetUtils.getTimegrain(thisMetricConfig.getTimeSpan()) - 1);
+                    String configAggregationType = thisMetricConfig.getAggregationType().toLowerCase();
+                    if (metricData.keySet().contains(configAggregationType)) {
+                        Double value = (Double) metricData.get(thisMetricConfig.getAggregationType().toLowerCase());
                         Metric metric = new Metric(metricName, Double.toString(value), metricPrefix + resourceName + METRIC_PATH_SEPARATOR + metricName);
                         metrics.add(metric);
                     } else
-                        LOGGER.debug("Doesn't match the aggregation type : ", jsonValue);
+                        LOGGER.debug("{} - metric ||{}|| aggregation type ||{}|| doesn't match the config aggregation type of ||{}|| for resource: ||{}||", loggingPrefix, metricName, metricData, configAggregationType, resourceName);
+                }
+                else {
+                    LOGGER.debug("{} - metric ||{}|| timeseries data was empty for resource: ||{}|| ", loggingPrefix, metricName, resourceName);
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("Error while parsing the JSONArray", e);
-        } finally {
-            return metrics;
-        }
+            LOGGER.error("{} - Error while parsing metric data for resource: ||{}||", loggingPrefix, resourceName, e);
+        } 
+        return metrics;
     }
 }
