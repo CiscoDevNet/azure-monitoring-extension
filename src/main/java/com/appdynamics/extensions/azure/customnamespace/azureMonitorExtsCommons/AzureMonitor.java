@@ -33,7 +33,7 @@ public abstract class AzureMonitor<T> extends ABaseMonitor {
         try {
             config = yaml.loadAs(new FileInputStream(file), clazz);
         } catch (FileNotFoundException e) {
-            getLogger().error("Error wile reading the config file", e);
+            getLogger().error("Error while reading the config file", e);
         }
     }
 
