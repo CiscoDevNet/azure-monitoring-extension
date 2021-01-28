@@ -3,15 +3,19 @@ package com.appdynamics.extensions.azure.customnamespace.utils;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.AUTHORIZATION;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.BEARER;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.RESOURCE_VERSION_PATH;
+import com.appdynamics.extensions.azure.customnamespace.config.Target;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.microsoft.aad.adal4j.AuthenticationResult;
+
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
@@ -20,8 +24,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /*
  Copyright 2019. AppDynamics LLC and its affiliates.
@@ -32,7 +34,6 @@ import java.util.regex.Pattern;
 public class AzureApiVersionStore {
     private static Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureApiVersionStore.class);
     private static Map<String, String> versionsMap = Maps.newConcurrentMap();
-    private static String DATE_REGEX = "(20\\d\\d-\\d\\d-\\d\\d)"; // To match the Azure api date formats
     private static Boolean updateVersionMap = false;
 
     static {
@@ -60,7 +61,6 @@ public class AzureApiVersionStore {
         }
     }
 
-
     public static void readVersionMapFromFile() {
         ObjectMapper mapper = new ObjectMapper();
         String line = null;
@@ -82,53 +82,39 @@ public class AzureApiVersionStore {
             LOGGER.error("Error while reading the file resource-version.json file", e);
         }
     }
-
-
-    public static String getAptApiVersion(HttpClient httpClient, String url, String version, String resource, AuthenticationResult authTokenResult) {
-        String api_version = null;
-        if (!versionsMap.containsKey(resource)) {
-            api_version = queryApiVersion(httpClient, url + version, version, authTokenResult);
-            versionsMap.put(resource, api_version);
-            updateVersionMap = true;
-        }
-        return versionsMap.get(resource);
-
-    }
-
-    private static String queryApiVersion(HttpClient httpClient, String url, String version, AuthenticationResult authTokenResult) {
-        String api_version = null;
-        try {
+    
+    public static String getDefaultApiVersion(HttpClient httpClient, String url, String resourceType, AuthenticationResult authTokenResult, String loggingPrefix) {
+        String defaultApiVersion = null;        
+        try {            
+            LOGGER.debug("{} - Resource Type ||{}|| API request for the default API version: ||{}||", loggingPrefix, resourceType, url);
             HttpGet request = new HttpGet(url);
-            request.addHeader(AUTHORIZATION, BEARER + authTokenResult.getAccessToken());
-            HttpResponse response1 = httpClient.execute(request);
-            String responseBody = EntityUtils.toString(response1.getEntity(), "UTF-8");
-            if (new JSONObject(responseBody).isNull("error"))
-                return version;
-            api_version = extractApiVersion(responseBody);
+            request.addHeader(AUTHORIZATION, BEARER + authTokenResult.getAccessToken());            
+            HttpResponse response = httpClient.execute(request);
+            LOGGER.debug("{} - Resource Type ||{}|| API response status code for the default API version: ||{}||", loggingPrefix, resourceType, response.getStatusLine().getStatusCode());
+
+            String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
+            LOGGER.trace("{} - Resource Type ||{}|| API response for the default API version: ||{}||", loggingPrefix, resourceType, responseBody);
+
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                try {
+                    JSONArray jsonResourceTypesArray = new JSONObject(responseBody).getJSONArray("resourceTypes");
+                    if (!jsonResourceTypesArray.isEmpty()) {
+                        for (int i = 0; i < jsonResourceTypesArray.length(); i++) {
+                            JSONObject resourceTypeObject = jsonResourceTypesArray.getJSONObject(i);                    
+                            if (resourceTypeObject.getString("resourceType").equalsIgnoreCase(resourceType)) {
+                                defaultApiVersion = resourceTypeObject.getString("defaultApiVersion");
+                                break;
+                            }                    
+                        }
+                    }    
+                }
+                catch(Exception e) {
+                    LOGGER.error("{} - Resource Type: ||{}|| - Exception parsing response for default API version. Response: ||{}||", loggingPrefix, resourceType, responseBody, e);
+                }                     
+            }               
         } catch (Exception e) {
-            LOGGER.error("Exception while querying the resource", e);
+            LOGGER.error("{} - Resource Type: ||{}|| - Exception while querying for default API version.", loggingPrefix, resourceType, e);
         }
-        return api_version;
-    }
-
-    private static String extractApiVersion(String responseBody) {
-        if (((JSONObject) (new JSONObject(responseBody).get("error"))).get("code").equals("InvalidResourceType") || ((JSONObject) (new JSONObject(responseBody).get("error"))).get("code").equals("NoRegisteredProviderFound")) {
-            String foundVersion = getLastMatch(((JSONObject) (new JSONObject(responseBody).get("error"))).get("message").toString());
-            LOGGER.error("Auto Detect apt version {} for the server API", foundVersion);
-            return foundVersion.trim();
-        }
-        return null;
-    }
-
-
-    public static String getLastMatch(String message) {
-        String match = null;
-        for (String text : message.split(",")) {
-            Matcher m = Pattern.compile(DATE_REGEX).matcher(text);
-            if (m.find()) {
-                match = m.group();
-            }
-        }
-        return match;
+        return defaultApiVersion;
     }
 }

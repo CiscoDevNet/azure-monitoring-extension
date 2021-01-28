@@ -85,6 +85,7 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
     private Configuration config;
     private String metricPrefix;
     private LongAdder requestCounter;
+    private String loggingPrefix;
 
     private T service;
     private String matchedServiceName;
@@ -97,6 +98,8 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
         this.config = builder.config;
         this.metricPrefix = builder.metricPrefix;
         this.requestCounter = builder.requestCounter;
+
+        this.loggingPrefix = "[ACCOUNT=" + this.account.getDisplayName() + ", SERVICE=" + this.monitoringService.getServiceName() + "]";
     }
 
     public void setService(T serviceQueryId) {
@@ -111,6 +114,7 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
     private List<Metric> collectMetrics() {
         List<Metric> metrics = Lists.newArrayList();
         try {
+            LOGGER.debug("{} - Starting metrics collection for service", loggingPrefix);
             String serviceName = monitoringService.getServiceName();
             Stat stats = null;
             if (monitorContextConfiguration.getConfigYml().get("filterStats") == null || monitorContextConfiguration.getConfigYml().get("filterStats").equals(true))
@@ -118,21 +122,21 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
             String resourceId = getFilteredResourceId(service);
             if (resourceId != null) {
                 metricPrefix = metricPrefix + account.getDisplayName() + METRIC_PATH_SEPARATOR + serviceName + METRIC_PATH_SEPARATOR;
-                LOGGER.debug("Starting metrics collection for displayname {}. service {}", account.getDisplayName(), matchedServiceName);
                 for (MetricDefinition metricDefinition : azure.metricDefinitions().listByResource(resourceId)) {
                     MetricConfig matchedConfig = isMetricConfigured(stats, metricDefinition.name().value());
                     if (matchedConfig != null)
                         metrics.addAll(queryMetricDefinition(metricDefinition, matchedConfig));
                 }
-                LOGGER.debug("Successfully collected all the metrics for display name {}, service {}", account.getDisplayName(), matchedServiceName);
+                LOGGER.debug("{} - Successfully collected all the metrics for service instance ||{}||", loggingPrefix, matchedServiceName);
             } else {
-                LOGGER.debug("service did not match for service {}", service.toString());
+                LOGGER.warn("{} - Unabled to collect metrics for service.  Please review service configuration.", loggingPrefix);
             }
         } catch (Exception e) {
-            LOGGER.debug("Exception in AzureMetricsCollector, failed while collect metrics ", e);
+            LOGGER.error("{} - Exception while collecting metrics for service. Please review the exception for details.", loggingPrefix, e);
         } finally {
-            return metrics;
+            LOGGER.debug("{} - Finished metrics collection for service", loggingPrefix);
         }
+        return metrics;
     }
 
     private List<Metric> queryMetricDefinition(MetricDefinition metricDefinition, MetricConfig matchedConfig) {
@@ -169,7 +173,7 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
             }
             return metricsQueryExecute.execute();
         } catch (Exception e) {
-            LOGGER.error("Failed to execute the metric query");
+            LOGGER.error("{} - Failed to execute the metric query", loggingPrefix, e);
         }
         return null;
     }
@@ -193,6 +197,7 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
         String resourceId = null;
         List<String> serviceInstances = monitoringService.getServiceInstances();
         List<String> regions = monitoringService.getRegions();
+        LOGGER.debug("{} - Looking to get instance resource id for with matching SDK type ||{}|| in configured instances ||{}|| and regions ||{}||", loggingPrefix, service.getClass().getSimpleName(), serviceInstances, regions);
         if (service instanceof ContainerGroup && checkServiceRegionPatternMatch(((ContainerGroup) service).name(), serviceInstances, ((ContainerGroup) service).region().label(), regions))
             resourceId = ((ContainerGroup) service).id();
         else if (service instanceof SqlServer && checkServiceRegionPatternMatch(((SqlServer) service).name(), serviceInstances, ((SqlServer) service).region().label(), regions))
@@ -296,7 +301,7 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
             resourceId = (((AppServicePlan) service).id());
         }
         if (resourceId == null) {
-            LOGGER.info("No match for the service being monitored {}", service);
+            LOGGER.debug("{} - Unable to get filtered resource id", loggingPrefix);            
         }
         return resourceId;
     }
@@ -350,8 +355,9 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
 
 
     private boolean checkServiceRegionPatternMatch(String service, List<String> servicePatterns, String region, List<String> regions) {
+        LOGGER.debug("{} - Looking for match of service instance ||{}|| in instances ||{}|| and region ||{}|| in regions ||{}||", loggingPrefix, service, servicePatterns, region, regions);
         if (CommonUtilities.checkStringPatternMatch(service, servicePatterns) && CommonUtilities.checkStringPatternMatch(region, regions)) {
-            LOGGER.debug("Match found for name :" + service);
+            LOGGER.debug("{} - Match found for service instance ||{}|| and region ||{}||", loggingPrefix, service, region);
             this.matchedServiceName = service;
             return true;
         }

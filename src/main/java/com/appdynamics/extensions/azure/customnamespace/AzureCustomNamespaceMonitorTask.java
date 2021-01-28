@@ -55,17 +55,19 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
 
     public void run() {
         try {
-            LOGGER.debug("Starting processing for the account {}", account.getDisplayName());
+            LOGGER.debug("[ACCOUNT={}] - Started processing account.", account.getDisplayName());
             azure = AuthenticationFactory.getAzure(account.getCredentials(), config.getEncryptionKey());
+            
             if (azure == null)
                 throw new Exception("Failed: built Azure object is null");
             else
                 collectStatistics();
-            LOGGER.debug("Completed processing for the account {}", account.getDisplayName());
+
+            LOGGER.debug("[ACCOUNT={}] - Completed processing account.", account.getDisplayName());
         } catch (IOException IOe) {
-            LOGGER.error("Error in Authentication of the Azure client", IOe);
+            LOGGER.error("[ACCOUNT={}] - Error in Authentication of the Azure client", account.getDisplayName(), IOe);
         } catch (Exception e) {
-            LOGGER.error("Exception while creating azure client", e);
+            LOGGER.error("[ACCOUNT={}] - Exception while creating azure client", account.getDisplayName(), e);
         }
         onTaskComplete();
     }
@@ -82,7 +84,7 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
             if (resourceTargets != null)
                 metrics.addAll(initTargetMetricsCollection(resourceTargets));
         } catch (Exception e) {
-            LOGGER.error("Error while collecting stats for Account {}", account.getDisplayName(), e);
+            LOGGER.error("[ACCOUNT={}] - Error while collecting stats.", account.getDisplayName(), e);
         } finally {
             Metric apiCallsMetric = new Metric("Azure API Calls", Double.toString(this.azureRequestCounter.doubleValue()), metricPrefix + "Azure API Calls");
             metrics.add(apiCallsMetric);
@@ -96,7 +98,7 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
             List<Service> services = account.getServices();
             for (Service service : services) {
                 try {
-                    LOGGER.debug("Started processing the service {}", service.getServiceName());
+                    LOGGER.debug("[ACCOUNT={}, SERVICE={}] - Started processing service",  account.getDisplayName(), service.getServiceName());
                     AzureServiceCollector serviceCollectorTask = new AzureServiceCollector.Builder()
                             .withAzure(azure)
                             .withService(service)
@@ -106,31 +108,32 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
                             .withMetricPrefix(metricPrefix)
                             .withRequestCounter(azureRequestCounter)
                             .build();
-                    FutureTask<List<Metric>> serviceExecutorTask = new FutureTask(serviceCollectorTask);
+                    FutureTask<List<Metric>> serviceExecutorTask = new FutureTask<>(serviceCollectorTask);
                     executorService.submit("AzureCustomNamespaceMonitorTask", serviceExecutorTask);
                     futureTasks.add(serviceExecutorTask);
                 } catch (Exception e) {
-                    LOGGER.error("Error while collecting metrics for resourceGroup {}", service.getServiceName(), e);
+                    LOGGER.error("[ACCOUNT={}, SERVICE={}] - Error while collecting metrics for service", account.getDisplayName(), service.getServiceName(), e);
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("Exception while querying for a resourceGroup of account {}", account.getDisplayName(), e);
+            LOGGER.error("[ACCOUNT={}] - Exception while querying for services.", account.getDisplayName(), e);
         } finally {
-            return futureTasks;
+            
         }
+        return futureTasks;
     }
 
 
     private List<FutureTask<List<Metric>>> buildFutureTargetTasks(MonitorExecutorService executorService, List<Target> targets) {
         List<FutureTask<List<Metric>>> futureTasks = Lists.newArrayList();
-        String targetName = null;
         try {
             authTokenResult = AuthenticationFactory.getAccessTokenFromUserCredentials();
             for (Target target : targets) {
+                LOGGER.debug("[ACCOUNT={}, TARGET={}] - Started processing target",  account.getDisplayName(), target.getDisplayName());
                 try {
-                    targetName = target.getDisplayName();
                     AzureTargetMonitorTask targetTask = new AzureTargetMonitorTask.Builder()
                                 .withTarget(target)
+                                .withAccount(account)
                                 .withAuthenticationResult(authTokenResult)
                                 .withConfiguration(config)
                                 .withSubscriptionId(account.getCredentials().getSubscriptionId())
@@ -142,14 +145,15 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
                     executorService.submit("AzureTargetMonitorTask", targetExecutorTask);
                     futureTasks.add(targetExecutorTask);
                 } catch (Exception e) {
-                    LOGGER.error("Error while collecting metrics for Server {}", targetName, e);
+                    LOGGER.error("[ACCOUNT={}, TARGET={}] - Error while collecting metrics", account.getDisplayName(), target.getDisplayName(), e);
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("Exception while querying for a server {} for account {}", targetName, e);
+            LOGGER.error("[ACCOUNT={}] - Exception while querying targets", account.getDisplayName(), e);
         } finally {
-            return futureTasks;
+            
         }
+        return futureTasks;
     }
 
     private List<Metric> initTargetMetricsCollection(List<Target> targets) {
@@ -159,7 +163,7 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
             List<FutureTask<List<Metric>>> targetFutureTask = buildFutureTargetTasks(executorService, account.getTargets());
             metrics = CommonUtilities.collectFutureMetrics(targetFutureTask, config.getConcurrencyConfig().getThreadTimeout(), "AzureCustomNamespaceMonitorTask");
         } catch (Exception e) {
-            LOGGER.error("Exception occurred while collecting target metrics", e);
+            LOGGER.error("[ACCOUNT={}] - Exception occurred while collecting metrics for targets ||{}||", account.getDisplayName(), targets, e);
         }
         return metrics;
     }
@@ -169,7 +173,7 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
         try {
             AzureApiVersionStore.writeVersionMapToFile();
         } catch (Exception e) {
-            LOGGER.error("Failed to write the versionsMap into the resource-version.json");
+            LOGGER.error("[ACCOUNT={}] - Failed to write the versionsMap into the resource-version.json", account.getDisplayName());
         }
     }
 }

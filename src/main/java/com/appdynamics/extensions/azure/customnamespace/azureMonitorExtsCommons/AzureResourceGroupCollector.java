@@ -36,6 +36,7 @@ public class AzureResourceGroupCollector<T> implements Callable<List<Metric>> {
     private String resourceGroup;
     private LongAdder requestCounter;
     private String metricPrefix;
+    private String loggingPrefix;
 
     public AzureResourceGroupCollector(Builder builder) {
         this.azure = builder.azure;
@@ -46,6 +47,8 @@ public class AzureResourceGroupCollector<T> implements Callable<List<Metric>> {
         this.resourceGroup = builder.resourceGroup;
         this.metricPrefix = builder.metricPrefix;
         this.requestCounter = builder.requestCounter;
+
+        this.loggingPrefix = "[ACCOUNT=" + this.account.getDisplayName() + ", SERVICE=" + this.service.getServiceName() + ", RESOURCE_GROUP=" + this.resourceGroup + "]";
     }
 
     public List<Metric> call() {
@@ -55,13 +58,16 @@ public class AzureResourceGroupCollector<T> implements Callable<List<Metric>> {
     private List<Metric> collectMetrics() {
         try {
             List<T> servicesList = NameSpaceGroupFactory.getNamespaceGroup(azure, service.getServiceName(), resourceGroup);
-            if (servicesList.size() > 0) {
+            if (servicesList != null && servicesList.size() > 0) {
                 MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfResourceGroupThreads()));
                 List<FutureTask<List<Metric>>> tasks = buildFutureTasks(executorService, servicesList);
                 return CommonUtilities.collectFutureMetrics(tasks, config.getConcurrencyConfig().getThreadTimeout(), "AzureResourceGroupCollector");
+            } else {
+                LOGGER.debug("{} - Service type not found in resource group", loggingPrefix);
             }
+
         } catch (Exception e) {
-            LOGGER.error("Exception caught in AzureResourceGroupCollector for resourceGroup {}", resourceGroup, e);
+            LOGGER.error("{} - Exception caught in collectMetrics()", loggingPrefix, e);
         }
         return Lists.newArrayList();
     }
@@ -70,7 +76,7 @@ public class AzureResourceGroupCollector<T> implements Callable<List<Metric>> {
         List<FutureTask<List<Metric>>> tasks = Lists.newArrayList();
         for (T serviceQueried : servicesList) {
             try {
-                LOGGER.debug("starting AzureMetricCollector task for {}", resourceGroup);
+                LOGGER.debug("{} - Starting AzureMetricCollector task", loggingPrefix);
                 AzureMetricsCollector<T> metricsCollectorTask = new AzureMetricsCollector.Builder()
                                                                                 .withAzure(azure)
                                                                                 .withService(service)
@@ -85,7 +91,7 @@ public class AzureResourceGroupCollector<T> implements Callable<List<Metric>> {
                 executorService.submit("AzureResourceGroupCollector", metricsCollectorExecutorTask);
                 tasks.add(metricsCollectorExecutorTask);
             } catch (Exception e) {
-                LOGGER.error("Exception while collecting metrics for resourceGroup {}, service {}, accountName {}", resourceGroup, service, account.getDisplayName(), e);
+                LOGGER.error("{} - Exception caught in buildFutureTasks()", loggingPrefix, e);
             }
         }
         return tasks;

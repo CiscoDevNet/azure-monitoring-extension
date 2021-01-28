@@ -38,6 +38,7 @@ public class AzureServiceCollector implements Callable<List<Metric>> {
     private Configuration config;
     private LongAdder requestCounter;
     private String metricPrefix;
+    private String loggingPrefix;
 
 
     public AzureServiceCollector(Builder builder) {
@@ -48,24 +49,25 @@ public class AzureServiceCollector implements Callable<List<Metric>> {
         this.config = builder.config;
         this.requestCounter = builder.requestCounter;
         this.metricPrefix = builder.metricPrefix;
+
+        this.loggingPrefix = "[ACCOUNT=" + this.account.getDisplayName() + ", SERVICE=" + this.service.getServiceName() + "]";
     }
 
     @Override
     public List<Metric> call() {
-        return collectServerStatistics();
+        return collectServiceStatistics();
     }
 
-    private List<Metric> collectServerStatistics() {
+    private List<Metric> collectServiceStatistics() {
         List<Metric> metrics = Lists.newArrayList();
         try {
             MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfServiceCollectorThreads()));
             List<FutureTask<List<Metric>>> resourceGroupFutureTask = buildFutureTasks(executorService);
             metrics = CommonUtilities.collectFutureMetrics(resourceGroupFutureTask, config.getConcurrencyConfig().getThreadTimeout(), "AzureServiceCollector");
         } catch (Exception e) {
-            LOGGER.error("Error while collecting stats for account{} and server {}", account.getDisplayName(), service.getServiceName(), e);
-        } finally {
-            return metrics;
+            LOGGER.error("{} - Error while collecting stats", loggingPrefix,  e);
         }
+        return metrics;
     }
 
     private List<FutureTask<List<Metric>>> buildFutureTasks(MonitorExecutorService executorService) {
@@ -73,7 +75,6 @@ public class AzureServiceCollector implements Callable<List<Metric>> {
         try {
             List<String> confResourceGroups = service.getResourceGroups();
             List<ResourceGroup> filteredResourceGroups = filteredResourceGroups(azure.resourceGroups().list(), confResourceGroups);
-            LOGGER.debug("Filtered resourceGroups are {}", filteredResourceGroups);
             for (ResourceGroup resourceGroup : filteredResourceGroups) {
                 try {
                     AzureResourceGroupCollector resourceGroupTask = new AzureResourceGroupCollector.Builder()
@@ -90,24 +91,29 @@ public class AzureServiceCollector implements Callable<List<Metric>> {
                     executorService.submit("AzureServiceCollector", resourceGroupExecutorTask);
                     futureTasks.add(resourceGroupExecutorTask);
                 } catch (Exception e) {
-                    LOGGER.error("Error while collecting metrics for resourceGroup {}", resourceGroup.name(), e);
+                    LOGGER.error("{} - Error while building resource group task resource group ||{}||", loggingPrefix, resourceGroup.name(), e);
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("Exception while querying for a resourceGroup of account {} and service{}", account.getDisplayName(), service.getServiceName(), e);
-        } finally {
-            return futureTasks;
+            LOGGER.error("{} - Exception in buildFutureTasks()", loggingPrefix, e);
         }
+        return futureTasks;
+        
     }
 
     private List<ResourceGroup> filteredResourceGroups(List<ResourceGroup> resourceGroups, List<String> confResourceGroups) {
+        LOGGER.debug("{} - Filtering available resource groups for configured resource groups ||{}||", loggingPrefix, confResourceGroups);
         List<ResourceGroup> filteredResourceGroup = Lists.newArrayList();
+        List<String> avaialbleResourceGroupNames = Lists.newArrayList();
+        List<String> filteredResourceGroupNames = Lists.newArrayList();
         for (ResourceGroup resourceGroup : resourceGroups) {
-            if (CommonUtilities.checkStringPatternMatch(resourceGroup.name(), confResourceGroups))
+            avaialbleResourceGroupNames.add(resourceGroup.name());
+            if (CommonUtilities.checkStringPatternMatch(resourceGroup.name(), confResourceGroups)) {
+                filteredResourceGroupNames.add(resourceGroup.name());
                 filteredResourceGroup.add(resourceGroup);
-            else
-                LOGGER.debug("No match for resourceGroup {}, Excluding it", resourceGroup.name());
+            }
         }
+        LOGGER.debug("{} - Completed resource group filtering - Filtered: ||{}|| from Available: ||{}||", loggingPrefix, filteredResourceGroupNames, avaialbleResourceGroupNames);
         return filteredResourceGroup;
     }
 

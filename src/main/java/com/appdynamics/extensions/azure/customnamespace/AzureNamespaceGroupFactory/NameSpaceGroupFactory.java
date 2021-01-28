@@ -24,7 +24,7 @@ public class NameSpaceGroupFactory {
         else if(namespace.equals(VIRTUAL_MACHINE))
             return (List<T>) azure.virtualMachines().listByResourceGroup(resourceGroup);
         else if(namespace.equals(ACTION_GROUP))
-            return (List<T>) azure. actionGroups().listByResourceGroup(resourceGroup);
+            return (List<T>) azure.actionGroups().listByResourceGroup(resourceGroup);
         else if(namespace.equals(APPLICATION_GATEWAY))
             return (List<T>) azure.applicationGateways().listByResourceGroup(resourceGroup);
         else if(namespace.equals(APPLICATION_SECURITY_GROUP))

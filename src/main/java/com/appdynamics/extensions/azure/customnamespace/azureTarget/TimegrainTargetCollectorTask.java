@@ -9,9 +9,9 @@
 
 package com.appdynamics.extensions.azure.customnamespace.azureTarget;
 
+import com.appdynamics.extensions.azure.customnamespace.config.Account;
 import com.appdynamics.extensions.azure.customnamespace.config.MetricConfig;
 import com.appdynamics.extensions.azure.customnamespace.config.Target;
-import com.appdynamics.extensions.azure.customnamespace.utils.AzureApiVersionStore;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.AUTHORIZATION;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.BEARER;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
@@ -35,6 +35,7 @@ public class TimegrainTargetCollectorTask implements Callable {
     private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger(TimegrainTargetCollectorTask.class);
 
     private Target target;
+    private Account account;
     private AuthenticationResult authTokenResult;
     private HttpClient client;
     private String url;
@@ -43,10 +44,13 @@ public class TimegrainTargetCollectorTask implements Callable {
     private String metricPrefix;
     private LongAdder requestCounter;
 
-    private String TARGET_API_VERSION = "2019-01-01";
+    private String METRICS_API_VERSION = "2018-01-01";
+    private String AGGREGATION_TYPES = "Total,Average,Maximum,Minimum,Count";
+    private String loggingPrefix;
 
     public TimegrainTargetCollectorTask(Builder builder) {
         this.target = builder.target;
+        this.account = builder.account;
         this.authTokenResult = builder.authTokenResult;
         this.client = builder.client;
         this.url = builder.url;
@@ -54,6 +58,8 @@ public class TimegrainTargetCollectorTask implements Callable {
         this.resourceName = builder.resourceName;
         this.metricPrefix = builder.metricPrefix;
         this.requestCounter = builder.requestCounter;
+
+        this.loggingPrefix = "[ACCOUNT=" + this.account.getDisplayName() + ", TARGET=" + this.target.getDisplayName() + ", RESOURCE=" + this.resourceName + "]";
     }
 
     @Override
@@ -62,29 +68,39 @@ public class TimegrainTargetCollectorTask implements Callable {
         try {
             metricsCollector(metrics);
         } catch (Exception e) {
-            LOGGER.error("Exception while granular metric collections", e);
+            LOGGER.error("{} - Exception while gathering granular metric collections", loggingPrefix, e);
         }
         return metrics;
     }
 
     private void metricsCollector(List<Metric> metrics) throws IOException {
         String subUrl = TargetUtils.apiMetricNamesBuilder(grainEntry.getValue());
-        TARGET_API_VERSION = AzureApiVersionStore.getAptApiVersion(client, url, TARGET_API_VERSION, resourceName, authTokenResult);
-        HttpGet request = new HttpGet((url + TARGET_API_VERSION + subUrl + "&timespan=" + grainEntry.getKey()).replaceAll("\\s+", "%20"));
+        String requestURL = (url + METRICS_API_VERSION + subUrl + "&aggregation=" + AGGREGATION_TYPES + "&timespan=" + grainEntry.getKey()).replaceAll("\\s+", "%20");
+        LOGGER.debug("{} - metrics values API request: ||{}||", loggingPrefix, requestURL);
+
+        HttpGet request = new HttpGet(requestURL);
         request.addHeader(AUTHORIZATION, BEARER + authTokenResult.getAccessToken());
         HttpResponse response = client.execute(request);
+        LOGGER.debug("{} - metrics values API response status code: ||{}||", loggingPrefix, response.getStatusLine().getStatusCode());
+        requestCounter.increment();
+
         if (response.getStatusLine().toString().contains("200 OK")) {
-            requestCounter.increment();
             String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
-            LOGGER.debug("Timegrain Target Response from endpoint: "+responseBody);
+            LOGGER.trace("{} - metrics values API response: ||{}||", loggingPrefix, responseBody);
+
             JSONObject jsonObject = new JSONObject(responseBody);
-            TargetJsonResponseParser jsonResponseParser = new TargetJsonResponseParser(metricPrefix, target);
+            TargetJsonResponseParser jsonResponseParser = new TargetJsonResponseParser(metricPrefix, account, target);
+            
             metrics.addAll(jsonResponseParser.parseJsonObject(jsonObject, resourceName, grainEntry.getValue()));
+        }
+        else {
+            LOGGER.warn("{} - metrics values API request failed.  Please review target configuration and resposne for details. Response: ||{}||", loggingPrefix, response);
         }
     }
 
     public static class Builder {
         private Target target;
+        private Account account;
         private AuthenticationResult authTokenResult;
         private HttpClient client;
         private String url;
@@ -95,6 +111,11 @@ public class TimegrainTargetCollectorTask implements Callable {
 
         public Builder withTarget(Target target) {
             this.target = target;
+            return this;
+        }
+
+        public Builder withAccount(Account account) {
+            this.account = account;
             return this;
         }
 

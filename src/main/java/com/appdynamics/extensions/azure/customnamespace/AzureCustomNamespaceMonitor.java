@@ -26,12 +26,12 @@ import java.util.Map;
 */
 public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
     private static final Logger LOGGER = ExtensionsLoggerFactory.getLogger(AzureCustomNamespaceMonitor.class);
-    private static final String DEFAULT_METRIC_PREFIX = String.format("%s%s%s%s", "Custom Metrics", METRIC_PATH_SEPARATOR, "Azure CustomNameSpace", METRIC_PATH_SEPARATOR);
+    private static final String DEFAULT_METRIC_PREFIX = String.format("%s%s%s%s", "Custom Metrics", METRIC_PATH_SEPARATOR, "Azure", METRIC_PATH_SEPARATOR);
     private MonitorContextConfiguration monitorContextConfiguration;
 
     public AzureCustomNamespaceMonitor() {
         super(Configuration.class);
-        LOGGER.info(String.format("Using Azure Custom Namespace Monitor Version [%s]",
+        LOGGER.info(String.format("Using Azure Monitor Version [%s]",
                 this.getClass().getPackage().getImplementationTitle()));
     }
 
@@ -39,8 +39,9 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
         return DEFAULT_METRIC_PREFIX;
     }
 
+    @Override
     public String getMonitorName() {
-        return monitorName;
+        return this.getClass().getSimpleName();
     }
 
     @Override
@@ -55,7 +56,7 @@ public class AzureCustomNamespaceMonitor extends AzureMonitor<Configuration> {
                 tasksExecutionServiceProvider.submit("accounts", task);
             }
         } catch (Exception e) {
-            LOGGER.error("Error in Azure CustomNameSpace monitoring extension, while processing the account", e);
+            LOGGER.error("Error in Azure monitoring extension, while processing the account", e);
         }
     }
 
