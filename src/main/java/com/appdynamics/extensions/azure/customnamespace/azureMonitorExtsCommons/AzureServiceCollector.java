@@ -108,9 +108,10 @@ public class AzureServiceCollector implements Callable<List<Metric>> {
         List<String> filteredResourceGroupNames = Lists.newArrayList();
         for (ResourceGroup resourceGroup : resourceGroups) {
             avaialbleResourceGroupNames.add(resourceGroup.name());
-            if (CommonUtilities.checkStringPatternMatch(resourceGroup.name(), confResourceGroups))
+            if (CommonUtilities.checkStringPatternMatch(resourceGroup.name(), confResourceGroups)) {
                 filteredResourceGroupNames.add(resourceGroup.name());
                 filteredResourceGroup.add(resourceGroup);
+            }
         }
         LOGGER.debug("{} - Completed resource group filtering - Filtered: ||{}|| from Available: ||{}||", loggingPrefix, filteredResourceGroupNames, avaialbleResourceGroupNames);
         return filteredResourceGroup;

@@ -149,7 +149,7 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("[ACCOUNT={}] - Exception while querying targets ||{}||", account.getDisplayName(), targets, e);
+            LOGGER.error("[ACCOUNT={}] - Exception while querying targets", account.getDisplayName(), e);
         } finally {
             
         }
