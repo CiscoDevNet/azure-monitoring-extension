@@ -147,13 +147,14 @@ public class AzureTargetMonitorTask implements Callable {
     }
 
     private void initTargetMetricsCollection(String resourceUrl, List<String> resourceNames, List<Metric> metrics, HttpClient client) {
-        for (String resourceName : resourceNames) {
-            try {
+        MonitorExecutorService executorService = null;
+        try {
+            executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(timeSpanMappedMetricConfig.size()));
+            for (String resourceName : resourceNames) {
                 resourceUrl = resourceUrl.replace("<MY-RESOURCE>", resourceName);
                 String url = Constants.AZURE_MANAGEMENT + SUBSCRIPTION + SLASH + subscriptionId + resourceUrl + API_VERSION;
                 metricConfigs = target.getMetrics();
                 metricConfigsProcessor(client, url);
-                MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(timeSpanMappedMetricConfig.size()));
                 List<FutureTask<List<Metric>>> futureTasks = Lists.newArrayList();
                 for (Map.Entry<String, List<MetricConfig>> entry : timeSpanMappedMetricConfig.entrySet()) {
                     try {
@@ -175,9 +176,11 @@ public class AzureTargetMonitorTask implements Callable {
                     }
                 }
                 metrics.addAll(CommonUtilities.collectFutureMetrics(futureTasks, 100, "AzureTargetMonitorTask"));
-            } catch (Exception e) {
-                LOGGER.error("Exception while server metric collection ", e.getMessage());
             }
+        } catch (Exception e) {
+            LOGGER.error("Exception while server metric collection ", e.getMessage());
+        } finally {
+            executorService.shutdown();
         }
     }
 
