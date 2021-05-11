@@ -15,11 +15,13 @@ import com.appdynamics.extensions.azure.customnamespace.config.Target;
 import com.appdynamics.extensions.azure.customnamespace.utils.AzureApiVersionStore;
 import com.appdynamics.extensions.azure.customnamespace.utils.CommonUtilities;
 import com.appdynamics.extensions.azure.customnamespace.utils.Constants;
+
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.API_VERSION;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.AUTHORIZATION;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.BEARER;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.RESOURCE_GROUPS;
 import static com.appdynamics.extensions.azure.customnamespace.utils.Constants.SUBSCRIPTION;
+
 import com.appdynamics.extensions.conf.modules.HttpClientModule;
 import com.appdynamics.extensions.executorservice.MonitorExecutorService;
 import com.appdynamics.extensions.executorservice.MonitorThreadPoolExecutor;
@@ -147,26 +149,27 @@ public class AzureTargetMonitorTask implements Callable {
     }
 
     private void initTargetMetricsCollection(String resourceUrl, List<String> resourceNames, List<Metric> metrics, HttpClient client) {
-        for (String resourceName : resourceNames) {
-            try {
+        MonitorExecutorService executorService = null;
+        try {
+            executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(timeSpanMappedMetricConfig.size()));
+            for (String resourceName : resourceNames) {
                 resourceUrl = resourceUrl.replace("<MY-RESOURCE>", resourceName);
                 String url = Constants.AZURE_MANAGEMENT + SUBSCRIPTION + SLASH + subscriptionId + resourceUrl + API_VERSION;
                 metricConfigs = target.getMetrics();
                 metricConfigsProcessor(client, url);
-                MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(timeSpanMappedMetricConfig.size()));
                 List<FutureTask<List<Metric>>> futureTasks = Lists.newArrayList();
                 for (Map.Entry<String, List<MetricConfig>> entry : timeSpanMappedMetricConfig.entrySet()) {
                     try {
                         TimegrainTargetCollectorTask targetTask = new TimegrainTargetCollectorTask.Builder()
-                                        .withTarget(target)
-                                        .withAuthenticationResult(authTokenResult)
-                                        .withClient(client)
-                                        .withUrl(url)
-                                        .withGrainEntry(entry)
-                                        .withResourceName(resourceName)
-                                        .withMetricPrefix(metricPrefix)
-                                        .withRequestCounter(requestCounter)
-                                        .build();
+                                .withTarget(target)
+                                .withAuthenticationResult(authTokenResult)
+                                .withClient(client)
+                                .withUrl(url)
+                                .withGrainEntry(entry)
+                                .withResourceName(resourceName)
+                                .withMetricPrefix(metricPrefix)
+                                .withRequestCounter(requestCounter)
+                                .build();
                         FutureTask<List<Metric>> targetExecutorTask = new FutureTask(targetTask);
                         executorService.submit("TimegrainTargetCollectorTask", targetExecutorTask);
                         futureTasks.add(targetExecutorTask);
@@ -175,9 +178,11 @@ public class AzureTargetMonitorTask implements Callable {
                     }
                 }
                 metrics.addAll(CommonUtilities.collectFutureMetrics(futureTasks, 100, "AzureTargetMonitorTask"));
-            } catch (Exception e) {
-                LOGGER.error("Exception while server metric collection ", e.getMessage());
             }
+        } catch (Exception e) {
+            LOGGER.error("Exception while server metric collection ", e.getMessage());
+        } finally {
+            executorService.shutdown();
         }
     }
 
@@ -226,7 +231,7 @@ public class AzureTargetMonitorTask implements Callable {
         request.addHeader(AUTHORIZATION, BEARER + authTokenResult.getAccessToken());
         HttpResponse response = httpClient.execute(request);
         String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
-        LOGGER.debug("Target Response from endpoint: "+responseBody);
+        LOGGER.debug("Target Response from endpoint: " + responseBody);
         JSONObject jsonObject = new JSONObject(responseBody);
         TargetUtils.scanJsonResponseforMetricConfigs(jsonObject, actualMetricConfigs);
         return actualMetricConfigs;
@@ -255,8 +260,8 @@ public class AzureTargetMonitorTask implements Callable {
             return this;
         }
 
-        public Builder withSubscriptionId(String subscriptionId ) {
-            this.subscriptionId = subscriptionId ;
+        public Builder withSubscriptionId(String subscriptionId) {
+            this.subscriptionId = subscriptionId;
             return this;
         }
 

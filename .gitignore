@@ -12,10 +12,10 @@ bin/
 resource-version.json
 *.tfstate*
 .terraform/
-
-.teamcity/
+.teamcity/*
 docker-compose.yml
 Dockerfile
 Makefile
-src/integration-test/
-*.tf
+src/integration-test/*
+azure.tf
+variables.tf

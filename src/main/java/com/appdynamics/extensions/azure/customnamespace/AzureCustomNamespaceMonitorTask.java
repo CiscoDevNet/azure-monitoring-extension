@@ -72,8 +72,9 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
 
     private void collectStatistics() {
         List<Metric> metrics = Lists.newArrayList();
+        MonitorExecutorService executorService = null;
         try {
-            MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfServiceCollectorThreads()));
+            executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfServiceCollectorThreads()));
             List<FutureTask<List<Metric>>> resourceGroupFutureTask = buildFutureTasks(executorService);
             metrics = CommonUtilities.collectFutureMetrics(resourceGroupFutureTask, config.getConcurrencyConfig().getThreadTimeout(), "AzureCustomNamespaceMonitorTask");
 
@@ -84,6 +85,7 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
         } catch (Exception e) {
             LOGGER.error("Error while collecting stats for Account {}", account.getDisplayName(), e);
         } finally {
+            executorService.shutdown();
             Metric apiCallsMetric = new Metric("Azure API Calls", Double.toString(this.azureRequestCounter.doubleValue()), metricPrefix + "Azure API Calls");
             metrics.add(apiCallsMetric);
             metricWriteHelper.transformAndPrintMetrics(metrics);
@@ -130,13 +132,13 @@ public class AzureCustomNamespaceMonitorTask implements AMonitorTaskRunnable {
                 try {
                     targetName = target.getDisplayName();
                     AzureTargetMonitorTask targetTask = new AzureTargetMonitorTask.Builder()
-                                .withTarget(target)
-                                .withAuthenticationResult(authTokenResult)
-                                .withConfiguration(config)
-                                .withSubscriptionId(account.getCredentials().getSubscriptionId())
-                                .withMetricPrefix(metricPrefix)
-                                .withRequestCounter(azureRequestCounter)
-                                .build();
+                            .withTarget(target)
+                            .withAuthenticationResult(authTokenResult)
+                            .withConfiguration(config)
+                            .withSubscriptionId(account.getCredentials().getSubscriptionId())
+                            .withMetricPrefix(metricPrefix)
+                            .withRequestCounter(azureRequestCounter)
+                            .build();
 
                     FutureTask<List<Metric>> targetExecutorTask = new FutureTask(targetTask);
                     executorService.submit("AzureTargetMonitorTask", targetExecutorTask);
