@@ -1,3 +1,6 @@
+### Version 1.0.5
+* Fixed issue for azure memory leak
+
 ### Version 1.0.4
 * Updated extension to appd-exts-commons 2.2.4
 
