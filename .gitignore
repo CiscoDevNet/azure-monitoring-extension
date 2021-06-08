@@ -14,7 +14,8 @@ resource-version.json
 .terraform/
 .teamcity/*
 docker-compose.yml
-Dockerfile_MA
-Dockerfile_WorkBench
+Dockerfile
 Makefile
 src/integration-test/*
+azure.tf
+variables.tf

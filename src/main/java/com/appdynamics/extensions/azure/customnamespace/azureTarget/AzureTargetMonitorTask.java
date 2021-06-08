@@ -176,6 +176,7 @@ public class AzureTargetMonitorTask implements Callable {
                     }
                 }
                 metrics.addAll(CommonUtilities.collectFutureMetrics(futureTasks, 100, "AzureTargetMonitorTask"));
+
             }
         } catch (Exception e) {
             LOGGER.error("Exception while server metric collection ", e.getMessage());
