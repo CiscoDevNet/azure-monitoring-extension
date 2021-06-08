@@ -57,13 +57,15 @@ public class AzureServiceCollector implements Callable<List<Metric>> {
 
     private List<Metric> collectServerStatistics() {
         List<Metric> metrics = Lists.newArrayList();
+        MonitorExecutorService executorService = null;
         try {
-            MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfServiceCollectorThreads()));
+            executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfServiceCollectorThreads()));
             List<FutureTask<List<Metric>>> resourceGroupFutureTask = buildFutureTasks(executorService);
             metrics = CommonUtilities.collectFutureMetrics(resourceGroupFutureTask, config.getConcurrencyConfig().getThreadTimeout(), "AzureServiceCollector");
         } catch (Exception e) {
             LOGGER.error("Error while collecting stats for account{} and server {}", account.getDisplayName(), service.getServiceName(), e);
         } finally {
+            executorService.shutdown();
             return metrics;
         }
     }

@@ -53,15 +53,18 @@ public class AzureResourceGroupCollector<T> implements Callable<List<Metric>> {
     }
 
     private List<Metric> collectMetrics() {
+        MonitorExecutorService executorService = null;
         try {
             List<T> servicesList = NameSpaceGroupFactory.getNamespaceGroup(azure, service.getServiceName(), resourceGroup);
             if (servicesList.size() > 0) {
-                MonitorExecutorService executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfResourceGroupThreads()));
+                executorService = new MonitorThreadPoolExecutor(new ScheduledThreadPoolExecutor(config.getConcurrencyConfig().getNoOfResourceGroupThreads()));
                 List<FutureTask<List<Metric>>> tasks = buildFutureTasks(executorService, servicesList);
                 return CommonUtilities.collectFutureMetrics(tasks, config.getConcurrencyConfig().getThreadTimeout(), "AzureResourceGroupCollector");
             }
         } catch (Exception e) {
             LOGGER.error("Exception caught in AzureResourceGroupCollector for resourceGroup {}", resourceGroup, e);
+        }  finally {
+            executorService.shutdown();
         }
         return Lists.newArrayList();
     }
