@@ -139,55 +139,6 @@ accounts:
          serviceInstances: [".*"]
 
 ~~~
-## Advanced Configuration
-**By default the targets configurations are commented out and should be used if the service can not be monitored with general configuration.**
-
-We support directly hitting the [Azure Rest API](https://docs.microsoft.com/en-us/rest/api/azure/) and collect the metrics in batches from the targets configured. It aviods any SDK dependencies and can help in monitoring the services which is not supported by Azure SDK for Java.
-The configuration for the target based metrics collection should be as below. You need to put `resource` (derived from resource url by updating dynamic params),  `resourceGroups`, `serviceInstances`, `metrics` and its stats.
-```
-    targets:
-       - displayName: "Az VM Instances"
-         resource: "/resourceGroups/<MY-RESOURCE-GROUP>/providers/Microsoft.Compute/virtualMachines/<MY-RESOURCE>/providers/microsoft.insights/metrics"
-         resourceGroups: ["my-resource-group"]
-         serviceInstances: ["my-vm"]
-         metrics:
-            - attr: "Network In Total"
-              aggregationType: "count"
-            - attr: "Network Out Total"
-              aggregationType: "count"
-            - attr: "Disk Write Bytes"
-              aggregationType: "count"
-            - attr: "Disk Read Operations/Sec"
-              aggregationType: "count"
-            - attr: "Disk Write Operations/Sec"
-              aggregationType: "count"
-
-```
-The following example illustrates building target config for ContainerInstances.
-Eg.: Let's say you have a container insttance running with the following url(from azure portal).
-```
-https://portal.azure.com/<#@your-tenant-id-****-9e8*******>/resource/subscriptions/<your-subscription-id-*******>/resourcegroups/`my-rg`/providers/Microsoft.ContainerInstance/containerGroups/`mynginx`/overview
-```
-As clear from the url above, *my-rg* is the `resourceGroup` and *mynginx* is the container name(`serviceInstance`). These two will be  dynamic and change with resources. The provider for ContainerInstance is *Microsoft.ContainerInstance/containerGroups* and the provider will change for different services. So, the resource in the config should be formatted as below(putting the instance level dynamic values in angular braces as below).
-```
-/resourceGroups/<MY-RESOURCE-GROUP>/providers/Microsoft.ContainerInstance/containerGroups/<MY-RESOURCE>/providers/microsoft.insights/metrics
-```
-```
-       - displayName: "Az Container"
-         resource: "/resourceGroups/<MY-RESOURCE-GROUP>/providers/Microsoft.ContainerInstance/containerGroups/<MY-RESOURCE>/providers/microsoft.insights/metrics"
-         resourceGroups: ["my-rg"]
-         serviceInstances: ["my.*"]
-         metrics:
-            - attr: "NetworkBytesTransmittedPerSecond"
-              aggregationType: "count"
-            - attr: "NetworkBytesReceivedPerSecond"
-              aggregationType: "count"
-            - attr: "MemoryUsage"
-              aggregationType: "count"
-            - attr: "CpuUsage"
-              aggregationType: "count"
-```
-
 
 ## Metrics
 Typical metric path: **Application Infrastructure Performance|\<Tier\>|Custom Metrics|Azure|\<Account DisplayName\>|\<serviceName\>|serviceInstanceName|\<metric\>** followed by the metrics defined in the link below:
