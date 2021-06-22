@@ -12,4 +12,4 @@ For reference only (Extension deployment is not possible on the current sandbox)
  
 [AppDynamics Fundamentals](https://developer.cisco.com/learning/modules/appdynamics-fundamentals)
  
-[Installation and Configuration workflow](https://github.com/Appdynamics/<extension-repo>/blob/master/README.md)
+[Installation and Configuration workflow](https://github.com/Appdynamics/azure-monitoring-extension/blob/master/README.md)
