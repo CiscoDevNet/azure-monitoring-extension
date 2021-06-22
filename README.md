@@ -139,6 +139,17 @@ accounts:
          serviceInstances: [".*"]
 
 ~~~
+# List of Supported services
+Below is the list of services which is supported by the extension:
+
+1.Virtual machine
+2.Storage account
+3.Container instances
+4.SQL server
+5.App Service
+6.App Service plan
+7.ApplicationGateway
+8.Cosmos DB Account
 
 ## Metrics
 Typical metric path: **Application Infrastructure Performance|\<Tier\>|Custom Metrics|Azure|\<Account DisplayName\>|\<serviceName\>|serviceInstanceName|\<metric\>** followed by the metrics defined in the link below:
