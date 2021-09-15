@@ -7,7 +7,9 @@ https://docs.microsoft.com/en-us/azure/azure-monitor/platform/metrics-supported
 **NOTE:** The extension is built using Azure Java SDK and may not monitor all the Azure services.
 
 ## Prerequisites
-The extension collects metrics, which are supported with Azure Monitor using the Azure management APIs. In order to query the APIs, you should have the following Ids from App registrations in Azure Active Directory.
+1. Before the extension is installed, the prerequisites mentioned [here](https://community.appdynamics.com/t5/Knowledge-Base/Extensions-Prerequisites-Guide/ta-p/35213) need to be met. Please do not proceed with the extension installation if the specified prerequisites are not met.
+
+2. The extension collects metrics, which are supported with Azure Monitor using the Azure management APIs. In order to query the APIs, you should have the following Ids from App registrations in Azure Active Directory.
 ```   
          client: 
          tenant: 
@@ -16,10 +18,7 @@ The extension collects metrics, which are supported with Azure Monitor using the
 ```
 Please refer the link below for detailed steps [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#create-a-new-application-secret)
 
-In order to use this extension, you do need a [Standalone JAVA Machine Agent](https://docs.appdynamics.com/display/PRO44/Standalone+Machine+Agents) or [SIM Agent](https://docs.appdynamics.com/display/PRO44/Server+Visibility).  For more details on downloading these products, please  visit [here](https://download.appdynamics.com/).
-The extension should be able to connect to the Azure management Apis in order to collect and send metrics. To do this, you will have to either establish a remote connection in between the extension and the product, or have an agent on the same machine running the product in order for the extension to collect and send the metrics.
-
-**Note : This extension is compatible with Machine Agent version 4.5.13 or later.
+3. The extension should be able to connect to the Azure management Apis in order to collect and send metrics. To do this, you will have to either establish a remote connection in between the extension and the product, or have an agent on the same machine running the product in order for the extension to collect and send the metrics.
 
 ## Installation
 1. Run 'mvn clean install' from azure-monitoring-extension
@@ -28,17 +27,18 @@ The extension should be able to connect to the Azure management Apis in order to
 4. Restart the Machine Agent.
 
 Please place the extension in the **"monitors"** directory of your **Machine Agent** installation directory. Do not place the extension in the **"extensions"** directory of your **Machine Agent** installation directory.
-In the AppDynamics Metric Browser, look for **Application Infrastructure Performance|\<Tier\>|Custom Metrics|Azure|** and you should be able to see all the metrics.
 
 ## Configuration
 In order to use the extension, you need to update the config.yml file that is present in the extension folder. Please find a detailed explanation for the configurable fields in the config.yml file.
 
 1. If SIM is enabled, then use the following metricPrefix `metricPrefix: "Custom Metrics|Azure"` else configure the "COMPONENT_ID" under which the metrics need to be reported.
-This can be done by changing the value of <COMPONENT_ID> in `metricPrefix: "Server|Component:<COMPONENT_ID>|Custom Metrics|Azure|"`.
+This can be done by changing the value of <COMPONENT_ID> in `metricPrefix: "Server|Component:<COMPONENT_ID>|Custom Metrics|Azure|"`.<br/>
    For example,
      ```
      metricPrefix: "Server|Component:100|Custom Metrics|Azure|"
      ```
+More details for metric prefix can be found [here](https://community.appdynamics.com/t5/Knowledge-Base/How-do-I-troubleshoot-missing-custom-metrics-or-extensions/ta-p/28695)
+
 2. Provide the Azure client, tenant, secret and SubscriptionId under the credentials.
 
    ```
@@ -101,9 +101,9 @@ Configuration for Storage Account.
      | :---------------- | :-------------- | :------------------------------ | :------------------------------------------------------------------------------------------------------------- |
      | alias             | metric name     | Any string                      | The substitute name to be used in the metric browser instead of metric name.                                   |
      | statType          | "ave"           | "AVERAGE", "SUM", "MIN", "MAX"  | Azure configured values as returned by API                                                                       |
-     | aggregationType   | "AVERAGE"       | "AVERAGE", "SUM", "OBSERVATION" | [Aggregation qualifier](https://docs.appdynamics.com/display/PRO44/Build+a+Monitoring+Extension+Using+Java)    |
-     | timeRollUpType    | "AVERAGE"       | "AVERAGE", "SUM", "CURRENT"     | [Time roll-up qualifier](https://docs.appdynamics.com/display/PRO44/Build+a+Monitoring+Extension+Using+Java)   |
-     | clusterRollUpType | "INDIVIDUAL"    | "INDIVIDUAL", "COLLECTIVE"      | [Cluster roll-up qualifier](https://docs.appdynamics.com/display/PRO44/Build+a+Monitoring+Extension+Using+Java)|
+     | aggregationType   | "AVERAGE"       | "AVERAGE", "SUM", "OBSERVATION" | [Aggregation qualifier](https://docs.appdynamics.com/display/latest/Build+a+Monitoring+Extension+Using+Java)    |
+     | timeRollUpType    | "AVERAGE"       | "AVERAGE", "SUM", "CURRENT"     | [Time roll-up qualifier](https://docs.appdynamics.com/display/latest/Build+a+Monitoring+Extension+Using+Java)   |
+     | clusterRollUpType | "INDIVIDUAL"    | "INDIVIDUAL", "COLLECTIVE"      | [Cluster roll-up qualifier](https://docs.appdynamics.com/display/latest/Build+a+Monitoring+Extension+Using+Java)|
      | multiplier        | 1               | Any number                      | Value with which the metric needs to be multiplied.                                                            |
      | convert           | null            | Any key value map               | Set of key value pairs that indicates the value to which the metrics need to be transformed. eg: UP:0, DOWN:1  |
      | delta             | false           | true, false                     | If enabled, gives the delta values of metrics instead of actual values.                                        |
@@ -115,7 +115,7 @@ Configuration for Storage Account.
     
 ### config.yml
 
-Please avoid using tab (\t) when editing yaml files. Please copy all the contents of the config.yml file and go to [Yaml Validator](http://www.yamllint.com/) . On reaching the website, paste the contents and press the “Go” button on the bottom left.
+Please avoid using tab (\t) when editing yaml files. Please copy all the contents of the config.yml file and go to [Yaml Validator](https://jsonformatter.org/yaml-validator) . On reaching the website, paste the contents and press the “Validate YAML” button.
 If you get a valid output, that means your formatting is correct and you may move on to the next step.
 
 **Below is an example config for monitoring VMs for an account and regions:**
@@ -172,7 +172,7 @@ Always feel free to fork and contribute any changes directly here on [GitHub](ht
    |          Name            |  Version   |
    |--------------------------|------------|
    |Extension Version         |1.0.5      |
-   |Controller Compatibility  |4.5 or Later|
-   |Agent Compatibility        | 4.5.13 or later|
    |Last Update               |11 May, 2021 |
-List of changes to this extension can be found [here](https://github.com/Appdynamics/azure-monitoring-extension/blob/master/CHANGELOG.md)
+   |Changes list              |[ChangeLog](https://github.com/Appdynamics/azure-monitoring-extension/blob/master/CHANGELOG.md)|
+
+**Note**: While extensions are maintained and supported by customers under the open-source licensing model, they interact with agents and Controllers that are subject to [AppDynamics’ maintenance and support policy](https://docs.appdynamics.com/latest/en/product-and-release-announcements/maintenance-support-for-software-versions). Some extensions have been tested with AppDynamics 4.5.13+ artifacts, but you are strongly recommended against using versions that are no longer supported.
