@@ -17,26 +17,6 @@ accounts:
          serviceInstances: ["vm.*"]
 
 
-
-# aggregationType ==> "None", "Average", "Minimum", "Maximum", "Total", "Count" refer: https://docs.microsoft.com/en-us/azure/azure-monitor/app/metrics-explorer
-#    targets:
-#       - displayName: "Az target VM"
-#         resource: "/resourceGroups/<MY-RESOURCE-GROUP>/providers/Microsoft.Compute/virtualMachines/<MY-RESOURCE>/providers/microsoft.insights/metrics"
-#         resourceGroups: ["my-rg"]
-#         serviceInstances: ["vm.*"]
-#         metrics:
-#            - attr: "Network In Total"
-#              aggregationType: "count"
-#            - attr: "Network Out Total"
-#              aggregationType: "count"
-#            - attr: "Disk Write Bytes"
-#              aggregationType: "count"
-#            - attr: "Disk Read Operations/Sec"
-#              aggregationType: "count"
-#            - attr: "Disk Write Operations/Sec"
-#              aggregationType: "count"
-
-
 proxyConfig:
   host:
   port:
