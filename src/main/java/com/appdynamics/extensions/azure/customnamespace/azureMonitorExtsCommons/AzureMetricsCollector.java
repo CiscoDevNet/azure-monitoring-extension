@@ -140,23 +140,27 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
         List<Metric> metrics = Lists.newArrayList();
         MetricCollection metricCollection = buildAndExecuteQuery(metricDefinition, recordDateTime, matchedConfig);
         requestCounter.increment();
-        for (com.microsoft.azure.management.monitor.Metric azureMetric : metricCollection.metrics()) {
-            for (TimeSeriesElement timeElement : azureMetric.timeseries()) {
-                if (timeElement.data() != null && timeElement.data().size() > 0) {
-                    MetricValue latestElement = getLatestTimeSeriesElement(timeElement);
-                    String metricValue = fetchValueAsPerAggregation(latestElement, matchedConfig.getAggregationType());
-                    if (!metricValue.equals("null")) {
-                        Metric metric = new Metric(matchedConfig.getAlias(), metricValue, metricPrefix + matchedServiceName + METRIC_PATH_SEPARATOR + matchedConfig.getAlias());
-                        metrics.add(metric);
+        if (metricCollection != null && metricCollection.metrics() != null) {
+            for (com.microsoft.azure.management.monitor.Metric azureMetric : metricCollection.metrics()) {
+                for (TimeSeriesElement timeElement : azureMetric.timeseries()) {
+                    if (timeElement.data() != null && timeElement.data().size() > 0) {
+                        MetricValue latestElement = getLatestTimeSeriesElement(timeElement);
+                        String metricValue = fetchValueAsPerAggregation(latestElement, matchedConfig.getAggregationType());
+                        if (!metricValue.equals("null")) {
+                            Metric metric = new Metric(matchedConfig.getAlias(), metricValue, metricPrefix + matchedServiceName + METRIC_PATH_SEPARATOR + matchedConfig.getAlias());
+                            metrics.add(metric);
+                        }
                     }
                 }
             }
+        } else {
+            LOGGER.info("No metrics found for " + matchedConfig.getAttr() + ". Skipping...");
         }
         return metrics;
     }
 
     //Sample dimension values for storage account https://docs.microsoft.com/en-us/azure/storage/common/storage-metrics-in-azure-monitor
-    private MetricCollection buildAndExecuteQuery(MetricDefinition metricDefinition, DateTime recordDateTime, MetricConfig matchedConfig) {
+    private MetricCollection buildAndExecuteQuery(MetricDefinition metricDefinition, DateTime recordDateTime, MetricConfig matchedConfig) {                
         try {
             MetricDefinition.MetricsQueryDefinition metricsQueryExecute = (MetricDefinition.MetricsQueryDefinition) metricDefinition.defineQuery()
                     .startingFrom(recordDateTime.minusMinutes(config.getMetricsTimeRange().getStartTimeInMinsBeforeNow()))
@@ -166,10 +170,11 @@ public class AzureMetricsCollector<T> implements Callable<List<Metric>> {
             if (metricDefinition.isDimensionRequired()) {
                 String defaultFilter = buildDimensionsFilterQuery(metricDefinition.dimensions());
                 metricsQueryExecute.withOdataFilter(defaultFilter);
-            }
+            }            
             return metricsQueryExecute.execute();
         } catch (Exception e) {
-            LOGGER.error("Failed to execute the metric query");
+            LOGGER.error("Failed to execute the metric query for " + matchedConfig.getAttr());
+            LOGGER.error(e.getMessage());
         }
         return null;
     }
